@@ -1,0 +1,70 @@
+-- jk320790
+
+comment "<=" "=3" ;
+comment "<==3" ;
+
+Program.  Prog  ::= "SOLUTION" Blk "CYA" ;
+
+Block.    Blk ::= [Dec] [Stm] ;
+
+ForLoop.     Stm ::= "FOR" Ident "IN" Exp "DO" Blk "DONE" ;
+IfStmt.      Stm ::= "IF" Exp "THEN" Blk "FI" ;
+IfElseStmt.  Stm ::= "IF" Exp "THEN" Blk "ELSE" Blk "FI" ;
+ReturnStmt.  Stm ::= "RETURN" Exp ";" ;
+PrintStmt.   Stm ::= "PRINT" Exp ";" ;
+ExpStmt.     Stm ::= Exp ";" ;
+Assign.      Stm ::= Ident "=" Exp ";" ;
+
+[].      [Stm] ::= ;
+(:).     [Stm] ::= Stm [Stm] ;
+
+-- DECLARATIONS
+Declaration.        Dec ::= Typ Ident ";" ;
+DeclarationAssing.  Dec ::= Typ Ident "=" Exp ";" ;
+DeclarationFunc.    Dec ::= Typ Ident "(" [FArg] ")" "DO" Blk "RETURNED" ;
+
+FArgument.        FArg ::= Typ Ident ;
+FArggumentRef.    FArg ::= "REF" Typ Ident ;
+
+[].       [FArg] ::= ;
+(:[]).    [FArg] ::= FArg ;
+(:).      [FArg] ::= FArg "," [FArg] ;
+
+[].      [Dec] ::= ;
+(:).     [Dec] ::= Dec [Dec] ; 
+-- TYPES
+TInt.    Typ   ::= "Integer" ;
+TBool.   Typ   ::= "Boolean" ;
+TString. Typ   ::= "String" ;
+
+-- EXPRESIONS
+Eeq.         Exp  ::= Exp "==" Exp2 ;
+Eneq.        Exp  ::= Exp "!=" Exp2 ;
+Elthen.      Exp2 ::= Exp2 "<" Exp3 ;
+Egrthen.     Exp2 ::= Exp2 ">" Exp3 ;
+Ele.         Exp2 ::= Exp2 "<=" Exp3 ;
+Ege.         Exp2 ::= Exp2 ">=" Exp3 ;
+Eplus.       Exp3 ::= Exp3 "+" Exp4 ;
+Eminus.      Exp3 ::= Exp3 "-" Exp4 ;
+Etimes.      Exp4 ::= Exp4 "*" Exp5 ;
+Ediv.        Exp4 ::= Exp4 "/" Exp5 ;
+--
+Einc.        Exp5 ::= Ident "++" ;
+Edec.        Exp5 ::= Ident "--" ;
+Einvok.      Exp5 ::= Ident "(" [IParam] ")" ;
+Evar.        Exp5 ::= Ident ;
+Econst.      Exp5 ::= Constraint ;
+--
+coercions Exp 6 ;
+--
+Eint.         Constraint ::= Integer ;
+Ebool.        Constraint ::= BoolT ;
+Estring.      Constraint ::= String ;
+--
+Constraint_True.   BoolT ::= "True" ;
+Constraint_False.  BoolT ::= "False" ;
+--
+InvokeParamater. IParam ::= Exp ;
+[].      [IParam] ::= ;
+(:[]).   [IParam] ::= IParam ;
+(:).     [IParam] ::= IParam "," [IParam] ;

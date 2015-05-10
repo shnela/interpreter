@@ -1,0 +1,10 @@
+SOLUTION
+  Integer sum(Integer a, Integer b, REF Integer c)
+  DO
+    c = a + b ;
+    RETURN c;
+  RETURNED
+  Integer j = 1 ;
+  Integer c = 3 ;
+  sum(j, 2, c);
+CYA

@@ -1,0 +1,20 @@
+SOLUTION
+  Integer fasada;
+  Boolean fun(Integer zm1, REF Integer zm2)
+  DO
+    zm - 2;
+    PRINT(zm);
+    RETURN fun(zm1 - 2, 2);
+  RETURNED
+  FOR dupa IN True
+  DO
+    Boolean b;
+    Integer fasada;
+    IF False
+    THEN
+      fun();
+    ELSE
+      Integer b = True;
+    FI
+  DONE
+CYA

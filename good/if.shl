@@ -1,0 +1,10 @@
+SOLUTION
+  Boolean f = False;
+  Boolean t = True;
+  IF f
+  THEN
+    f = True;
+  ELSE
+    t = False;
+  FI
+CYA
