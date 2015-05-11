@@ -11,22 +11,16 @@ import ErrM
 import Misc
 
 
---tte :: Monad m => m a -> Err (m a)
---tte action = do {
---  result <- action;
---  return (Ok result)
---}
-
 --general funcitons
 interpret :: Prog -> Err State
-interpret (Program b) = interpretBlock b (St (Vst [], Fst [], Bst []))
+interpret (Program b) = interpretBlock b BottomState
 
 interpretBlock :: Blk -> State -> Err State
 interpretBlock b st = case b of
   Block dec stm -> do {
-    state <- loadDeclarations dec st;
-    stmnts <- runStatments stm state;
-    Ok stmnts
+    state <- loadDeclarations dec (St (Vst [], Fst [], Bst [], st));
+    new_state <- runStatments stm state;
+    Ok new_state 
   }
 
 
@@ -48,23 +42,31 @@ loadDeclarations (d:decs) st  = case d of
     loadDeclarations decs new_state
   }
 
+runFor counter end_val blk state =
+  if counter < end_val then do
+      new_state <- interpretBlock blk state;
+      runFor (counter + 1) end_val blk new_state
+  else return state
 
 --statements
 runStatments :: [Stm] -> State -> Err State
 runStatments [] state = Ok state
 runStatments (s:t) state = do
   new_state <- case s of
-    ForLoop id exp blk  -> Bad "Not implemented! for"
+--    ForLoop id exp blk  -> Bad "Not implemented! for"
+    ForLoop id exp blk -> do {
+        Eint end_val <- evalExpression exp state;
+        initial_state <- declare (St (Vst [], Fst [], Bst [], state)) TInt id (Eint 0);
+        finish_state <- runFor 0 end_val blk initial_state;
+        Ok finish_state
+    }
+
     IfStmt exp blk -> do {
       c <- evalExpression exp state;
       condition <- convert_constraint_to_bool c;
       new_state <-
         if condition then interpretBlock blk state
           else Ok state;
-  --      case e of
-  --        EBool Constraint_True -> interpretBlock blk state
-  --        EBool Constraint_False -> Ok state
-  --        otherwise -> Bad "only boolean in if condition";
       Ok new_state
     }
 
@@ -74,9 +76,6 @@ runStatments (s:t) state = do
       new_state <-
         if condition then interpretBlock blkt state
           else interpretBlock blke state;
-  --      EBool Constraint_True -> interpretBlock blkt state
-  --      EBool Constraint_False -> interpretBlock blke state
-  --      otherwise -> Bad "only boolean in if condition";
       Ok new_state
     }
 

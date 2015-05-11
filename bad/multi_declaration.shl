@@ -1,0 +1,6 @@
+<= one declaration per block =3
+
+SOLUTION
+  Integer i = 10;
+  Integer i = 20;
+CYA

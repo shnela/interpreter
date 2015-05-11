@@ -1,0 +1,13 @@
+<= this shows how nested declarations works =3
+
+SOLUTION
+  Integer i = 10;
+  PRINT i;
+  IF i
+  THEN
+    Integer i = 20;
+    PRINT i;
+  FI
+  i = 30;
+  PRINT i;
+CYA

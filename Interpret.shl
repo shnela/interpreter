@@ -2,7 +2,7 @@ SOLUTION
   Integer multi = 2 + 2 * 2 + 1;
   Boolean b = True;
   Boolean c;
-  String s = 42;
+  String s = "jeden";
   multi = 2;
   PRINT s ;
   IF multi == 1

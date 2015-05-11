@@ -1,17 +1,13 @@
+<= simple var evaluation and operands order test =3
+
 SOLUTION
   Integer multi = 2 + 2 * 2;
-  Boolean b = True;
-  Boolean c;
-  String skkkku = 42;
-<==3  PRINT 32 ;
-  IF 32
+  IF True
   THEN
-    Integer bc = 55;
-<=    fun(); =3
+    multi = 22;
   ELSE
-    Integer b2 = True;
+    multi = 33;
   FI
-<=  PRINT 32 ; =3
-  PRINT 32 ;
+  PRINT multi;
 
 CYA

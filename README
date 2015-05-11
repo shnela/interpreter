@@ -1,8 +1,34 @@
-bezkonfliktowa gramatyka
-szablon
+Projekt zawiera pliki wygenerowane przez bcnf (gramatyka taka sama jak oddana w poprzednim etapie, bnfc nie zgłasza błędów).
 
-dynamiczne typowanie, kowersje
+Rozwiązanie znajduje się w plikach:
+Interpret.hs:
+- tutaj odbywa się wczytywanie pliku wejściowego
+- polecam funkcje pomagająca przy debugowaniu zostawiłem włączone (show_info, debug)
 
-Vst
-Fst
-Bst
+Misc.hs:
+- tutaj znajduje się wszystko, co dotyczy zarządzania stanami
+- przechowuję w stanie:
+  - [Vst] zmienne
+  - [Fst] funkcje
+  - [Bst] bufor wyjścia - dla instrukcji PRINT - wypisywanie nie jest realizowane na bieżąco ani przy błędnym wykonaniu programu
+  - [Stc] stos (co umożliwia zagnieżdżenia zmiennych, a także rekurencję (jeszcze niezrobiona))
+
+Interpreter.hs:
+- tutaj znajduje się główna część kodu interpretera
+
+Interpreter sprawdza typy dynamicznie w trakcie działania i o ile to możliwe aplikuje tosowne konwersje.
+
+Instrukcja for (FOR id IN exp ...) uniemożliwia użytkownikowi ingerowanie w jej przebieg (zmienna id jest 'schowana' jeden stan niżej niż stan bloku, przez co niemożliwa jest jej modyfikacja, przy jednoczesnej możliwości odczytu wartości, podobnie wyrażenie exp wyliczane jest tylko raz - przed pierwszym przebiegiem) [edit: instrukcja nie działa jeszcze poprawnie...]
+
+Deklaracje zmiennych dozwolone są jednokrotnie w obrębie bloku, natomiast w nowym bloku można przysłaniać zadeklarowane wcześniej zmienna (podobnie jak w C++).
+
+W przypadku funkcji deklaracja jest dozwolona jedynie w zewnętrznym bloku (wynika to z implementacji interpretera, a nie z gramatyki języka, według której można dynamicznie deklarować funkcje). Czy taki zabieg jest dozwolony?
+
+Opisaną funkcjonalność może Pan sprawdzić w katalogach good/bad, gdzie znajdują się pliki źródłowe opatrzone komentarzem.
+
+
+Brakujące elementy:
+Niestety nie byłem w stanie zaimplementować funkcji, jednak mam nadzieję, że będę mógł dosłać implementację brakujących elementów mailem. Napisałem trochę kodu, który stanowi szablon dla deklaracji i wywoływania funkcji, dodatkowo mając gotowe narzędzie do deklaracji zmiennych i wielopoziomowe środowisko, dalsza implementacja nie powinna stanowić problemu.
+Niedziałający for.
+Jednoargumentowe operatory ++ --.
+

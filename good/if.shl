@@ -1,4 +1,5 @@
 <= put f or t variable in if statment to check ifelse and variabels assignment =3
+
 SOLUTION
   Boolean f = False;
   Boolean t = True;

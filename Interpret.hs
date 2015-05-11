@@ -13,6 +13,8 @@ import TypeChecker
 import ErrM
 import Control.Monad.Trans
 
+import Misc
+
 runFile :: FilePath -> IO ()
 runFile f = putStrLn f >> readFile f >>= \s -> show_info s >> debug s >> run s
 
@@ -26,8 +28,11 @@ main = do args <- getArgs
 run :: String -> IO ()
 run s = let ts = myLexer s in case pProg ts of
            Bad msg   -> do putStrLn msg;
-           Ok p   -> do putStrLn $show (interpret p);
-                        return ();
+           Ok p   -> do
+                      case (interpret p) of
+                        Ok (St (Vst vst, Fst fst, Bst bst, _)) -> putStrLn $ show $ reverse bst
+                        Bad c -> putStrLn "bieda"
+                      return ();
 
 
 -- print final state of a program

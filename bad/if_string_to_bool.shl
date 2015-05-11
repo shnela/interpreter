@@ -1,0 +1,12 @@
+<= string cannot be converted to bool =3
+
+SOLUTION
+  String h = "txt";
+  Integer ans;
+  IF h
+  THEN
+    ans = 1;
+  ELSE
+    ans = 0;
+  FI
+CYA

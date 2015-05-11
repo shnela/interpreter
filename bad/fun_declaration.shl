@@ -1,0 +1,13 @@
+<= function declaration allowed only in outermost block =3
+
+SOLUTION
+  Boolean declare = True;
+  IF declare
+  THEN
+    Integer sum(Integer a, Integer b, REF Integer c)
+    DO
+      c = a + b ;
+      RETURN c;
+    RETURNED
+  FI
+CYA

@@ -14,63 +14,79 @@ data FunState = Fst[(Typ, Ident, [FArg], Blk)]
   deriving Show
 data BufState = Bst[Constraint]
   deriving Show
-data PrintBuf = Prt[String]
-  deriving Show
+--data StackState = St[State]
+--  deriving Show
 
-data State = St(VarState, FunState, BufState)
+data State = St(VarState, FunState, BufState, State) | BottomState
   deriving Show
 
 lookvar :: State -> Ident -> Err Constraint
-lookvar (St (Vst vst, Fst fst, Bst bst)) id =
+lookvar BottomState id = Bad $ "no such varbiable: " ++ (show id)
+lookvar (St (Vst vst, Fst fst, Bst bst, stc)) id =
   let {find found (t, i, c)
     | i == id = (t, i, c)
     | otherwise = found }
   in
   if (any (\(_, i, _) -> id == i) vst)
     then Ok ((\(_, _, c) -> c)(foldl find (head vst) vst))
-    else Bad "no such varbiable"
+    else lookvar stc id
 
---todo type check
+--TODO type check
 update :: State -> Ident -> Constraint -> Err State
-update (St (Vst vst, Fst fst, Bst bst)) id con =
-  let {updateV el@(t, i, c)
-      | i == id = (t, i, con)
-      | otherwise = el }
+update BottomState _ _ = Bad "no such identifier to update"
+update (St (Vst vst, Fst fst, Bst bst, stc)) id con =
+  let { updateV el@(t, i, c)
+        | i == id = (t, i, con)
+        | otherwise = el }
     in
     if (any (\(_, i, _) -> id == i) vst)
-      then Ok $ St(
-        Vst (map updateV vst),
-        Fst fst,
-        Bst bst)
-        else Bad "no such identifier to update"
+      then
+        Ok $ St(
+          Vst (map updateV vst),
+          Fst fst,
+          Bst bst,
+          stc)
+      else do
+        updated_state <- update stc id con;
+        Ok $ St(
+          Vst vst,
+          Fst fst,
+          Bst bst,
+          updated_state)
 
 declare :: State -> Typ -> Ident -> Constraint -> Err State
-declare state@(St (Vst vst, Fst fst, Bst bst)) typ id con =
+declare state@(St (Vst vst, Fst fst, Bst bst, stc)) typ id con =
   if (any (\(_, i, _) -> id == i) vst)
-    then update state id con
+    then Bad "Identifier is declared in this scope"
     else Ok (St(
       Vst ((typ, id, con):vst),
       Fst fst,
-      Bst bst))
-
+      Bst bst,
+      stc))
 
 declareF :: State -> Typ -> Ident -> [FArg] -> Blk -> Err State
-declareF (St (Vst vst, Fst fst, Bst bst)) typ id args blk =
+declareF (St (Vst vst, Fst fst, Bst bst, BottomState)) typ id args blk =
   if (any (\(_, i, _, _) -> id == i) fst)
     then Bad "function exists"
     else Ok (St(
       Vst vst,
       Fst ((typ, id, args, blk):fst),
-      Bst bst))
+      Bst bst,
+      BottomState))
+declareF _ _ _ _ _ = Bad "function declaration allowed only in outermost block"
+-- TODO example
 
 getFun :: Ident -> State -> Err (Typ, Ident, [FArg], Blk)
-getFun id (St (Vst vst, Fst fst, Bst bst)) =
+getFun id BottomState = Bad "function doesn't exists"
+getFun id (St (Vst vst, Fst fst, Bst bst, BottomState)) =
   let {find found (t, i, a, c)
     | i == id = (t, i, a, c)
     | otherwise = found }
   in if (any (\(_, i, _, _) -> id == i) fst)
     then Ok (foldl find (head fst) fst)
     else Bad "function doesn't exists"
+getFun id (St (Vst vst, Fst fst, Bst bst, stc)) =
+  getFun id stc
 
 -- enrich:: State -> Ident -> [(FArg, IParam)] -> Err State
 -- enrich state id [] = Ok state
@@ -108,11 +124,14 @@ getFun id (St (Vst vst, Fst fst, Bst bst)) =
 --      Ok new_state
 
 toBuffer :: State -> Constraint -> Err State
-toBuffer (St (Vst vst, Fst fst, Bst bst)) mesg =
+toBuffer (St (Vst vst, Fst fst, Bst bst, BottomState)) mesg =
     Ok (St(
       Vst vst,
       Fst fst,
-      Bst (mesg:bst)))
+      Bst (mesg:bst),
+      BottomState))
+toBuffer (St (Vst vst, Fst fst, Bst bst, stc)) mesg =
+  toBuffer stc mesg
 
 --modify :: Ident -> Constraint -> State -> Err State
 --modify id con (St st) =

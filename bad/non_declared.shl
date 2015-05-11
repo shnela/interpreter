@@ -1,0 +1,5 @@
+<= connot use undeclared variables =3
+
+SOLUTION
+  i = 20;
+CYA
