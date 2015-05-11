@@ -1,15 +1,16 @@
 SOLUTION
-  Integer multi = 2 + 2 * 2;
+  Integer multi = 2 + 2 * 2 + 1;
   Boolean b = True;
   Boolean c;
   String s = 42;
+  multi = 2;
   PRINT s ;
-  IF False
+  IF multi == 1
   THEN
-    Integer bc = 55;
-<=    fun(); =>
-<=  ELSE =3
-<=    Integer b = True; =3
+    multi = 44;
+<=    fun(); =3
+  ELSE
+    multi = 42;
   FI
 
 CYA

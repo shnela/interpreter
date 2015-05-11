@@ -1,0 +1,13 @@
+<= similar to if.shl, but uses integers instead of Booleans, you can also check that string deosn't work =3
+SOLUTION
+  Integer f = 0;
+  Integer t = 42;
+  String h = "txt";
+  Integer ans;
+  IF t
+  THEN
+    ans = 1;
+  ELSE
+    ans = 0;
+  FI
+CYA

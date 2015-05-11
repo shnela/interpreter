@@ -1,3 +1,5 @@
+-- Jakub Kuszneruk jk320790
+
 -- BNF Converter: Error Monad
 -- Copyright (C) 2004  Author:  Aarne Ranta
 

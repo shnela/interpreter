@@ -1,3 +1,5 @@
+-- Jakub Kuszneruk jk320790
+
 module TypeChecker where
 
 import Absshl

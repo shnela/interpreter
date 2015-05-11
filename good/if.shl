@@ -1,10 +1,12 @@
+<= put f or t variable in if statment to check ifelse and variabels assignment =3
 SOLUTION
   Boolean f = False;
   Boolean t = True;
-  IF f
+  Integer ans;
+  IF t <= changes here =3
   THEN
-    f = True;
+    ans = 1;
   ELSE
-    t = False;
+    ans = 0;
   FI
 CYA

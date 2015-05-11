@@ -1,3 +1,5 @@
+-- Jakub Kuszneruk jk320790
+
 module Misc where
 
 import Absshl
@@ -11,6 +13,8 @@ data VarState = Vst[(Typ, Ident, Constraint)]
 data FunState = Fst[(Typ, Ident, [FArg], Blk)]
   deriving Show
 data BufState = Bst[Constraint]
+  deriving Show
+data PrintBuf = Prt[String]
   deriving Show
 
 data State = St(VarState, FunState, BufState)
@@ -68,24 +72,24 @@ getFun id (St (Vst vst, Fst fst, Bst bst)) =
     then Ok (foldl find (head fst) fst)
     else Bad "function doesn't exists"
 
-enrich:: State -> Ident -> [(FArg, IParam)] -> Err State
-enrich state id [] = Ok state
-enrich state id (arg, param:rest) = do {
-  new_state <-
-    if arg == FArgument t i then
-      if param == Econst cons then declare state t i cons
-        else if param == Evar id then
-          cons <- lookvar state id;
-          declare state t i cons
-          else Bad "only var or vale in funciton invoke"
-      else if arg == ArgumentRef t i then 
-        if param == Econst cons then declare state t i cons
-          else if param == Evar id then
-            cons <- lookvar state id;
-            declare state t i cons
-            else Bad "only var or vale in funciton invoke";
-      Ok New State
-}
+-- enrich:: State -> Ident -> [(FArg, IParam)] -> Err State
+-- enrich state id [] = Ok state
+-- enrich state id (arg, param:rest) = do {
+--   new_state <-
+--     if arg == FArgument t i then
+--       if param == Econst cons then declare state t i cons
+--         else if param == Evar id then
+--           cons <- lookvar state id;
+--           declare state t i cons
+--           else Bad "only var or vale in funciton invoke"
+--       else if arg == ArgumentRef t i then 
+--         if param == Econst cons then declare state t i cons
+--           else if param == Evar id then
+--             cons <- lookvar state id;
+--             declare state t i cons
+--             else Bad "only var or vale in funciton invoke";
+--       Ok New State
+-- }
 --    case arg of
 --      FArgument t i -> 
 --        case param of

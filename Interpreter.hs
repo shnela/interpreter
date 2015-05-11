@@ -1,3 +1,5 @@
+-- Jakub Kuszneruk jk320790
+
 module Interpreter where
 
 import Control.Monad.Trans
@@ -50,46 +52,52 @@ loadDeclarations (d:decs) st  = case d of
 --statements
 runStatments :: [Stm] -> State -> Err State
 runStatments [] state = Ok state
-runStatments (s:_) state = case s of
-  ForLoop id exp blk  -> Bad "Not implemented! for"
-  IfStmt exp blk -> do {
-    e <- evalExpression exp state;
-    new_state <-
-      if e == Ebool Constraint_True then interpretBlock blk state
-        else  if e == Ebool Constraint_False then Ok state
-          else Bad "only boolean in if condition" ;
---      case e of
---        EBool Constraint_True -> interpretBlock blk state
---        EBool Constraint_False -> Ok state
---        otherwise -> Bad "only boolean in if condition";
+runStatments (s:t) state = do
+  new_state <- case s of
+    ForLoop id exp blk  -> Bad "Not implemented! for"
+    IfStmt exp blk -> do {
+      c <- evalExpression exp state;
+      condition <- convert_constraint_to_bool c;
+      new_state <-
+        if condition then interpretBlock blk state
+          else Ok state;
+  --      case e of
+  --        EBool Constraint_True -> interpretBlock blk state
+  --        EBool Constraint_False -> Ok state
+  --        otherwise -> Bad "only boolean in if condition";
       Ok new_state
-  }
-  IfElseStmt exp blkt blke -> do {
-    e <- evalExpression exp state;
-    new_state <-
-    if e == Ebool Constraint_True then interpretBlock blkt state
-      else if e == Ebool Constraint_False then interpretBlock blke state
-        else Bad "only boolean in if condition";
---      EBool Constraint_True -> interpretBlock blkt state
---      EBool Constraint_False -> interpretBlock blke state
---      otherwise -> Bad "only boolean in if condition";
-    Ok new_state
-  }
-  PrintStmt exp -> do {
-    e <- evalExpression exp state;
-    new_state <- toBuffer state e;
-    Ok new_state
-  }
-  ReturnStmt exp -> Bad "Not implemented! return"
-  ExpStmt exp -> do {
-    evalExpression exp state;
-    Ok state
-  }
-  Assign v e -> do {
-    val <- evalExpression e state;
-    new_state <- update state v val;
-    Ok new_state
-  }
+    }
+
+    IfElseStmt exp blkt blke -> do {
+      c <- evalExpression exp state;
+      condition <- convert_constraint_to_bool c;
+      new_state <-
+        if condition then interpretBlock blkt state
+          else interpretBlock blke state;
+  --      EBool Constraint_True -> interpretBlock blkt state
+  --      EBool Constraint_False -> interpretBlock blke state
+  --      otherwise -> Bad "only boolean in if condition";
+      Ok new_state
+    }
+
+    PrintStmt exp -> do {
+      e <- evalExpression exp state;
+      new_state <- toBuffer state e;
+      Ok new_state
+    }
+
+    ReturnStmt exp -> Bad "Not implemented! return"
+    ExpStmt exp -> do {
+      evalExpression exp state;
+      Ok state
+    }
+    
+    Assign v e -> do {
+      val <- evalExpression e state;
+      new_state <- update state v val;
+      Ok new_state
+    }
+  runStatments t new_state
 
 
 --expresions
@@ -108,24 +116,24 @@ evalExpression e state =
     (Eint xi, Eint yi) -> Ok $ Ebool $ if f xi yi then Constraint_True else Constraint_False
     _ -> Bad "Bad operation"
   } in case e of
---  Eeq e1 e2 -> eval e1 e2 (==)
---  Eneq e1 e2 -> eval e1 e2 (/=)
+  Eeq e1 e2 -> evalB e1 e2 (==)
+  Eneq e1 e2 -> evalB e1 e2 (/=)
   Elthen e1 e2 -> evalB e1 e2 (<)
---  Egrthen e1 e2 -> eval e1 e2 (>)
---  Ele e1 e2 -> eval e1 e2 (<=)
---  Ege e1 e2 -> eval e1 e2 (>=)
+  Egrthen e1 e2 -> evalB e1 e2 (>)
+  Ele e1 e2 -> evalB e1 e2 (<=)
+  Ege e1 e2 -> evalB e1 e2 (>=)
   Eplus e1 e2 -> eval e1 e2 (+)
   Eminus e1 e2 -> eval e1 e2 (-)
   Etimes e1 e2 -> eval e1 e2 (*)
---  Ediv e1 e2 -> eval e1 e2 (/)
-  Einvok id params -> do {
-    (typ, id, fargs, blk) <- getFun id state;
-    new_start_state <- enrich state id zip $ fargs params;
-    new_state <- interpretBlock blk new_start_state;
-    case typ of
-      TInt -> Ok $ Eint 0
-      otherwise -> Ok $ Ebool Constraint_False
-  }
+  Ediv e1 e2 -> eval e1 e2 quot
+--   Einvok id params -> do {
+--     (typ, id, fargs, blk) <- getFun id state;
+--     new_start_state <- enrich state id zip $ fargs params;
+--     new_state <- interpretBlock blk new_start_state;
+--     case typ of
+--       TInt -> Ok $ Eint 0
+--       otherwise -> Ok $ Ebool Constraint_False
+--   }
   Evar id -> do {
     val <- lookvar state id;
     Ok val
@@ -142,6 +150,13 @@ evalExpression e state =
 evalConstraint2int :: Constraint -> Err Integer
 evalConstraint2int c = case c of
  Eint i -> Ok i
--- Constraint_True -> Bad "Can't turn bool to int"
+-- Ebool Constraint_True -> Bad "Can't turn bool to int"
 -- Constraint_False -> Bad "Can't turn bool to int"
  Estring s -> Bad "can't turn string to int"
+
+convert_constraint_to_bool :: Constraint -> Err Bool
+convert_constraint_to_bool c = case c of
+      Ebool b -> return $ b == Constraint_True
+      Eint i -> return $ i /= 0
+      Estring _ -> Bad "cannot convert string to Boolean"
+      otherwise -> Bad "cannot convert to Boolean"
