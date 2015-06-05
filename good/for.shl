@@ -2,9 +2,12 @@
 <= not finished - wont work for range > 1 =3
 
 SOLUTION
-  Integer range = 1;
+  Integer range = 10;
+  Integer s = 0;
   FOR i IN range
   DO
+    s = s + i;
     PRINT i;
   DONE
+  PRINT s;
 CYA

@@ -1,0 +1,26 @@
+<= nested if - check states =3
+
+SOLUTION
+  Integer val;
+  IF True
+  THEN
+    Integer j;
+    IF True
+    THEN
+      Integer d1;
+      val = 22;
+    FI
+    IF False
+    THEN
+      Integer d_0;
+      val = 0;
+    FI
+    IF True
+    THEN
+      Integer d2;
+      val = 23;
+    FI
+  FI
+  PRINT val;
+
+CYA

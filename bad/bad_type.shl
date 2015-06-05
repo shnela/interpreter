@@ -1,0 +1,6 @@
+<= this program shows that we cannot assign value of bad type =3
+
+SOLUTION
+  Integer i = 10;
+  i = "asdf";
+CYA

@@ -31,15 +31,26 @@ lookvar (St (Vst vst, Fst fst, Bst bst, stc)) id =
     then Ok ((\(_, _, c) -> c)(foldl find (head vst) vst))
     else lookvar stc id
 
+getType :: Constraint -> Err Typ
+getType con =
+  case con of
+  Eint _ -> Ok TInt
+  Ebool _ -> Ok TBool
+  Estring _ -> Ok TString
+  otherwise -> Bad "Unknown type"
+
 --TODO type check
 update :: State -> Ident -> Constraint -> Err State
-update BottomState _ _ = Bad "no such identifier to update"
+update BottomState id con =
+  case getType con of
+  Ok t -> Bad $ "No such identifier: " ++ (show id) ++ " of type: " ++ (show t) ++ " to update."
+  otherwise -> Bad "Unknown error during resolving variable type"
 update (St (Vst vst, Fst fst, Bst bst, stc)) id con =
   let { updateV el@(t, i, c)
         | i == id = (t, i, con)
         | otherwise = el }
     in
-    if (any (\(_, i, _) -> id == i) vst)
+    if (any (\(t, i, _) -> id == i && (getType con == Ok t)) vst)
       then
         Ok $ St(
           Vst (map updateV vst),
@@ -88,50 +99,40 @@ getFun id (St (Vst vst, Fst fst, Bst bst, BottomState)) =
 getFun id (St (Vst vst, Fst fst, Bst bst, stc)) =
   getFun id stc
 
--- enrich:: State -> Ident -> [(FArg, IParam)] -> Err State
--- enrich state id [] = Ok state
--- enrich state id (arg, param:rest) = do {
---   new_state <-
---     if arg == FArgument t i then
---       if param == Econst cons then declare state t i cons
---         else if param == Evar id then
---           cons <- lookvar state id;
---           declare state t i cons
---           else Bad "only var or vale in funciton invoke"
---       else if arg == ArgumentRef t i then 
---         if param == Econst cons then declare state t i cons
---           else if param == Evar id then
---             cons <- lookvar state id;
---             declare state t i cons
---             else Bad "only var or vale in funciton invoke";
---       Ok New State
--- }
---    case arg of
---      FArgument t i -> 
---        case param of
---          Econst cons -> declare state t i cons
---          Evar id ->
---            cons <- lookvar state id;
---            declare state t i cons
---          otherwise -> Bad "only var or value in funcito invoke"
---      FArgumentRef t i -> 
---        case param of
---          Econst cons -> declare state t i cons
---          Evar id ->
---            cons <- lookvar state id;
---            declare state t i cons
---          otherwise -> Bad "only var or value in funcito invoke";
---      Ok new_state
+-- update state by funciton arguments
+enrich:: State -> Ident -> [(FArg, IParam)] -> Err State
+enrich state id [] = Ok state
+enrich state id ((arg, InvokeParamater param):rest) = do
+   new_state <- case arg of
+     FArgument t i -> 
+       case param of
+         Econst cons -> declare state t i cons
+         Evar id -> do
+           cons <- lookvar state id;
+           declare state t i cons
+         otherwise -> Bad "only var or value in funcito invoke"
+     FArggumentRef t i -> 
+       case param of
+         Evar id -> do
+           cons <- lookvar state id;
+           declare state t i cons
+         otherwise -> Bad "only var or value in funcito invoke";
+   Ok new_state
 
 toBuffer :: State -> Constraint -> Err State
-toBuffer (St (Vst vst, Fst fst, Bst bst, BottomState)) mesg =
+toBuffer state@(St (Vst vst, Fst fst, Bst bst, BottomState)) mesg = do
     Ok (St(
       Vst vst,
       Fst fst,
       Bst (mesg:bst),
       BottomState))
-toBuffer (St (Vst vst, Fst fst, Bst bst, stc)) mesg =
-  toBuffer stc mesg
+toBuffer (St (Vst vst, Fst fst, Bst bst, stc)) mesg = do
+  new_state <- toBuffer stc mesg
+  Ok (St(
+    Vst vst,
+    Fst fst,
+    Bst bst,
+    new_state))
 
 --modify :: Ident -> Constraint -> State -> Err State
 --modify id con (St st) =

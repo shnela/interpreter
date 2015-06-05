@@ -1,4 +1,5 @@
-all: interpreter deps
+all: interpreter
+# all: interpreter deps
 
 interpreter: Interpret.hs Interpreter.hs Misc.hs
 	ghc --make Interpret.hs -o interpreter

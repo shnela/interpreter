@@ -19,8 +19,11 @@ interpretBlock :: Blk -> State -> Err State
 interpretBlock b st = case b of
   Block dec stm -> do {
     state <- loadDeclarations dec (St (Vst [], Fst [], Bst [], st));
-    new_state <- runStatments stm state;
-    Ok new_state 
+    St state@(_, _, _, deep_s) <- runStatments stm state;
+    case deep_s of
+      -- to save the deppest state (output)
+      BottomState -> (Ok $ St state)
+      otherwise -> Ok deep_s
   }
 
 
@@ -42,10 +45,13 @@ loadDeclarations (d:decs) st  = case d of
     loadDeclarations decs new_state
   }
 
-runFor counter end_val blk state =
+-- for helper
+runFor id end_val blk state = do
+  Eint counter <- lookvar state id
   if counter < end_val then do
       new_state <- interpretBlock blk state;
-      runFor (counter + 1) end_val blk new_state
+      incremented_state <- update new_state id $Eint (counter + 1);
+      runFor id end_val blk incremented_state
   else return state
 
 --statements
@@ -53,12 +59,11 @@ runStatments :: [Stm] -> State -> Err State
 runStatments [] state = Ok state
 runStatments (s:t) state = do
   new_state <- case s of
---    ForLoop id exp blk  -> Bad "Not implemented! for"
     ForLoop id exp blk -> do {
         Eint end_val <- evalExpression exp state;
         initial_state <- declare (St (Vst [], Fst [], Bst [], state)) TInt id (Eint 0);
-        finish_state <- runFor 0 end_val blk initial_state;
-        Ok finish_state
+        St finish_state@(_, _, _, stt) <- runFor id end_val blk initial_state;
+        Ok stt
     }
 
     IfStmt exp blk -> do {
@@ -125,14 +130,14 @@ evalExpression e state =
   Eminus e1 e2 -> eval e1 e2 (-)
   Etimes e1 e2 -> eval e1 e2 (*)
   Ediv e1 e2 -> eval e1 e2 quot
---   Einvok id params -> do {
---     (typ, id, fargs, blk) <- getFun id state;
---     new_start_state <- enrich state id zip $ fargs params;
---     new_state <- interpretBlock blk new_start_state;
---     case typ of
---       TInt -> Ok $ Eint 0
---       otherwise -> Ok $ Ebool Constraint_False
---   }
+  Einvok id params -> do {
+    (typ, id, fargs, blk) <- getFun id state;
+    new_start_state <- enrich state id (zip fargs params);
+    new_state <- interpretBlock blk new_start_state;
+    case typ of
+      TInt -> Ok $ Eint 0
+      otherwise -> Ok $ Ebool Constraint_False
+  }
   Evar id -> do {
     val <- lookvar state id;
     Ok val

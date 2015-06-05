@@ -24,7 +24,7 @@ DeclarationAssing.  Dec ::= Typ Ident "=" Exp ";" ;
 DeclarationFunc.    Dec ::= Typ Ident "(" [FArg] ")" "DO" Blk "RETURNED" ;
 
 FArgument.        FArg ::= Typ Ident ;
-FArggumentRef.    FArg ::= "REF" Typ Ident ;
+FArgumentRef.    FArg ::= "REF" Typ Ident ;
 
 [].       [FArg] ::= ;
 (:[]).    [FArg] ::= FArg ;
