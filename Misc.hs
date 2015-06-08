@@ -25,7 +25,7 @@ data State = St(VarState, RefState, FunState, BufState, State, RetValue) | Botto
 
 
 getRetValue :: State -> Err Constraint
-getRetValue (St (_, _, _, _, _, NotRet)) = Bad "function shoud return value"
+getRetValue (St (_, _, _, _, _, NotRet)) = Ok $ Eint 0
 getRetValue (St (_, _, _, _, _, Return ret)) = Ok ret
 
 setRetValue :: State -> RetValue -> State
