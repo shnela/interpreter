@@ -1,0 +1,12 @@
+<= bad type =3
+
+SOLUTION
+
+  Integer fun()
+  DO
+    RETURN "Ala";
+  RETURNED
+
+  String k = fun();
+  PRINT k;
+CYA

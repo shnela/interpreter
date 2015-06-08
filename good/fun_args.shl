@@ -7,11 +7,11 @@ SOLUTION
     PRINT b;
   RETURNED
 
-  Integer test(Integer a, REF Integer b)
+  Integer test(Integer a, REF Integer c)
   DO
-    Integer a = 3;
-    Integer b = 4;
-    print2(a, b);
+    a = 3;
+    c = 4;
+    print2(a, c);
   RETURNED
 
   Integer a = 1;

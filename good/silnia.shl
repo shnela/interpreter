@@ -1,0 +1,25 @@
+<= silnia =3
+
+SOLUTION
+
+  Integer silniaH(Integer a, Integer r)
+  DO
+    IF a < 2
+    THEN
+      RETURN 1;
+    ELSE
+      RETURN (a) * silniaH(a - 1, r);
+    FI
+  RETURNED
+
+  Integer silnia(Integer r)
+  DO
+    RETURN silniaH(r, r);
+  RETURNED
+
+  FOR i IN 6
+  DO
+    PRINT i;
+    PRINT silnia(i);
+  DONE
+CYA

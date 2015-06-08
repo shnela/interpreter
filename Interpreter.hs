@@ -29,7 +29,7 @@ loadDeclarations :: [Dec] -> State -> Err State
 loadDeclarations [] st = Ok st
 loadDeclarations (d:decs) st  = case d of
   Declaration t id -> do {
-    new_state <- (declare st t id $defaultValue t);
+    new_state <- (declare st t id $ defaultValue t);
     loadDeclarations decs new_state
     }
   DeclarationAssing t id e -> do {
@@ -55,7 +55,7 @@ runFor id end_val blk state = do
 runStatments :: [Stm] -> State -> Err State
 runStatments [] state = Ok state
 runStatments (s:t) state = do
-  new_state <- case s of
+  new_state@(St (_, _, _, _, _, ret)) <- case s of
     ForLoop id exp blk -> do {
         (state, Eint end_val) <- evalExpression exp state;
         initial_state <- declare (wind_state state) TInt id (Eint 0);
@@ -87,7 +87,16 @@ runStatments (s:t) state = do
       Ok new_state
     }
 
-    ReturnStmt exp -> Bad "Not implemented! return"
+    ReturnStmt exp -> do {
+      (state@(St (Vst vst, Rst rst, Fst fst, Bst bst, stc, _)), cons) <- evalExpression exp state;
+      Ok $ St(
+        Vst vst,
+        Rst rst,
+        Fst fst,
+        Bst bst,
+        stc,
+        Return cons)
+    }
 
     ExpStmt exp -> do {
       (state, _) <- evalExpression exp state;
@@ -99,8 +108,24 @@ runStatments (s:t) state = do
       new_state <- update state v val;
       Ok new_state
     }
-  runStatments t new_state
 
+  case ret of
+    Return _ -> Ok new_state
+    NotRet -> runStatments t new_state
+
+-- update state with funciton arguments
+enrich:: State -> Ident -> [(FArg, IParam)] -> Err State
+enrich state id [] = Ok state
+enrich state id ((arg, InvokeParamater param):rest) = do
+   new_state <- case arg of
+     FArgument t i ->  do
+      (state, cons) <- evalExpression param state;
+      declare state t i cons
+     FArggumentRef t i -> 
+       case param of
+         Evar param_id -> refer state t i t param_id
+         otherwise -> Bad "only var or value in funciton invoke";
+   enrich new_state id rest
 
 --expresions
 evalExpression :: Exp -> State -> Err (State, Constraint)
@@ -132,9 +157,10 @@ evalExpression e state =
     (typ, id, fargs, blk) <- getFun id state;
     new_start_state <- enrich (wind_state state) id (zip fargs $ params);
     new_state <- interpretBlock blk new_start_state;
-    case typ of
-      TInt -> Ok (unwind_state new_state, Eint 0)
-      otherwise -> Ok (unwind_state new_state, Ebool Constraint_False)
+    ret_val <- getRetValue new_state;
+    ret_type <- getType ret_val;
+    if typ /= ret_type then Bad $"Bad return type: " ++ (show ret_type) ++ ", " ++ (show typ) ++ " expected."
+      else Ok (unwind_state new_state, ret_val)
   }
   Evar id -> do {
     val <- lookvar state id;

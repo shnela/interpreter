@@ -31,7 +31,7 @@ run s = let ts = myLexer s in case pProg ts of
            Bad msg   -> do putStrLn msg;
            Ok p   -> do
                       case (interpret p) of
-                        Ok (St (_, _, Bst bst, _)) -> putStrLn $ show $ reverse bst
+                        Ok (St (_, _, _, Bst bst, _, _)) -> putStrLn $ show $ reverse bst
                         Bad c -> putStrLn c
                       return ();
 
