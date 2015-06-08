@@ -1,0 +1,13 @@
+SOLUTION
+  Integer rec(Integer a, Integer b)
+  DO
+    PRINT a;
+    a = a + 1;
+    IF a < b
+    THEN
+      rec (a, b);
+    FI
+  RETURNED
+
+  rec(0, 10);
+CYA

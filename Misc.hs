@@ -10,12 +10,12 @@ import ErrM
 
 data VarState = Vst[(Typ, Ident, Constraint)]
   deriving Show
+data RefState = Vst[(Typ, Ident1, Ident2)]
+  deriving Show
 data FunState = Fst[(Typ, Ident, [FArg], Blk)]
   deriving Show
 data BufState = Bst[Constraint]
   deriving Show
---data StackState = St[State]
---  deriving Show
 
 data State = St(VarState, FunState, BufState, State) | BottomState
   deriving Show
@@ -121,7 +121,7 @@ enrich state id ((arg, InvokeParamater param):rest) = do
          Evar id -> do
            cons <- lookvar state id;
            declare state t i cons
-         otherwise -> Bad "only var or value in funcito invoke"
+         otherwise -> Bad $ "only var or value in funcito invoke:"
      FArggumentRef t i -> 
        case param of
          Evar id -> do

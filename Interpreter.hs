@@ -90,7 +90,7 @@ runStatments (s:t) state = do
     ReturnStmt exp -> Bad "Not implemented! return"
 
     ExpStmt exp -> do {
-      evalExpression exp state;
+      (state, _) <- evalExpression exp state;
       Ok state
     }
     
@@ -130,11 +130,11 @@ evalExpression e state =
   Ediv e1 e2 -> eval e1 e2 quot
   Einvok id params -> do {
     (typ, id, fargs, blk) <- getFun id state;
-    new_start_state <- enrich (wind_state state) id (zip fargs params);
+    new_start_state <- enrich (wind_state state) id (zip fargs $ params);
     new_state <- interpretBlock blk new_start_state;
     case typ of
-      TInt -> Ok (state, Eint 0)
-      otherwise -> Ok (state, Ebool Constraint_False)
+      TInt -> Ok (unwind_state new_state, Eint 0)
+      otherwise -> Ok (unwind_state new_state, Ebool Constraint_False)
   }
   Evar id -> do {
     val <- lookvar state id;

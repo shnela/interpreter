@@ -1,0 +1,23 @@
+<= reference and value arguments =3
+
+SOLUTION
+  Integer print2(Integer a, Integer b)
+  DO
+    PRINT a;
+    PRINT b;
+  RETURNED
+
+  Integer test(Integer a, REF Integer b)
+  DO
+    Integer a = 3;
+    Integer b = 4;
+    print2(a, b);
+  RETURNED
+
+  Integer a = 1;
+  Integer b = 2;
+
+  print2(a, b);
+  test(a, b);
+  print2(a, b);
+CYA
