@@ -1,0 +1,10 @@
+SOLUTION
+  String range = "ala";
+  Integer s = 0;
+  FOR i IN range
+  DO
+    s = s + i;
+    PRINT i;
+  DONE
+  PRINT s;
+CYA

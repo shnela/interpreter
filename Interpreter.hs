@@ -57,10 +57,13 @@ runStatments [] state = Ok state
 runStatments (s:t) state = do
   new_state@(St (_, _, _, _, _, ret)) <- case s of
     ForLoop id exp blk -> do {
-        (state, Eint end_val) <- evalExpression exp state;
-        initial_state <- declare (wind_state state) TInt id (Eint 0);
-        finish_state <- runFor id end_val blk initial_state;
-        Ok $ unwind_state finish_state
+        (state, end_cons) <- evalExpression exp state;
+        case end_cons of
+        Eint end_val -> do
+          initial_state <- declare (wind_state state) TInt id (Eint 0);
+          finish_state <- runFor id end_val blk initial_state;
+          Ok $ unwind_state finish_state
+        otherwise ->  Bad "For loop range must be integer"
     }
 
     IfStmt exp blk -> do {
