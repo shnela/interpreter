@@ -18,12 +18,9 @@ interpret (Program b) = interpretBlock b BottomState
 interpretBlock :: Blk -> State -> Err State
 interpretBlock b st = case b of
   Block dec stm -> do {
-    state <- loadDeclarations dec (St (Vst [], Fst [], Bst [], st));
-    St state@(_, _, _, deep_s) <- runStatments stm state;
-    case deep_s of
-      -- to save the deppest state (output)
-      BottomState -> (Ok $ St state)
-      otherwise -> Ok deep_s
+    state <- loadDeclarations dec $ wind_state st;
+    state <- runStatments stm state;
+    Ok $ unwind_state state
   }
 
 
@@ -36,7 +33,7 @@ loadDeclarations (d:decs) st  = case d of
     loadDeclarations decs new_state
     }
   DeclarationAssing t id e -> do {
-    exp <- evalExpression e st;
+    (st, exp) <- evalExpression e st;
     new_state <- (declare st t id exp);
     loadDeclarations decs new_state
     }
@@ -60,14 +57,14 @@ runStatments [] state = Ok state
 runStatments (s:t) state = do
   new_state <- case s of
     ForLoop id exp blk -> do {
-        Eint end_val <- evalExpression exp state;
-        initial_state <- declare (St (Vst [], Fst [], Bst [], state)) TInt id (Eint 0);
-        St finish_state@(_, _, _, stt) <- runFor id end_val blk initial_state;
-        Ok stt
+        (state, Eint end_val) <- evalExpression exp state;
+        initial_state <- declare (wind_state state) TInt id (Eint 0);
+        finish_state <- runFor id end_val blk initial_state;
+        Ok $ unwind_state finish_state
     }
 
     IfStmt exp blk -> do {
-      c <- evalExpression exp state;
+      (state, c) <- evalExpression exp state;
       condition <- convert_constraint_to_bool c;
       new_state <-
         if condition then interpretBlock blk state
@@ -76,7 +73,7 @@ runStatments (s:t) state = do
     }
 
     IfElseStmt exp blkt blke -> do {
-      c <- evalExpression exp state;
+      (state, c) <- evalExpression exp state;
       condition <- convert_constraint_to_bool c;
       new_state <-
         if condition then interpretBlock blkt state
@@ -85,19 +82,20 @@ runStatments (s:t) state = do
     }
 
     PrintStmt exp -> do {
-      e <- evalExpression exp state;
+      (state, e) <- evalExpression exp state;
       new_state <- toBuffer state e;
       Ok new_state
     }
 
     ReturnStmt exp -> Bad "Not implemented! return"
+
     ExpStmt exp -> do {
       evalExpression exp state;
       Ok state
     }
     
     Assign v e -> do {
-      val <- evalExpression e state;
+      (state, val) <- evalExpression e state;
       new_state <- update state v val;
       Ok new_state
     }
@@ -105,19 +103,19 @@ runStatments (s:t) state = do
 
 
 --expresions
-evalExpression :: Exp -> State -> Err Constraint
+evalExpression :: Exp -> State -> Err (State, Constraint)
 evalExpression e state =
   let eval e1 e2 f = do {
-    x <- evalExpression e1 state;
-    y <- evalExpression e2 state;
+    (state, x) <- evalExpression e1 state;
+    (state, y) <- evalExpression e2 state;
     case (x, y) of
-    (Eint xi, Eint yi) -> Ok $ Eint $ f xi yi
+    (Eint xi, Eint yi) -> Ok (state, Eint $ f xi yi)
     _ -> Bad "Bad operation"
   } in let evalB e1 e2 f = do {
-    x <- evalExpression e1 state;
-    y <- evalExpression e2 state;
+    (state, x) <- evalExpression e1 state;
+    (state, y) <- evalExpression e2 state;
     case (x, y) of
-    (Eint xi, Eint yi) -> Ok $ Ebool $ if f xi yi then Constraint_True else Constraint_False
+    (Eint xi, Eint yi) -> Ok (state, Ebool $ if f xi yi then Constraint_True else Constraint_False)
     _ -> Bad "Bad operation"
   } in case e of
   Eeq e1 e2 -> evalB e1 e2 (==)
@@ -132,18 +130,18 @@ evalExpression e state =
   Ediv e1 e2 -> eval e1 e2 quot
   Einvok id params -> do {
     (typ, id, fargs, blk) <- getFun id state;
-    new_start_state <- enrich state id (zip fargs params);
+    new_start_state <- enrich (wind_state state) id (zip fargs params);
     new_state <- interpretBlock blk new_start_state;
     case typ of
-      TInt -> Ok $ Eint 0
-      otherwise -> Ok $ Ebool Constraint_False
+      TInt -> Ok (state, Eint 0)
+      otherwise -> Ok (state, Ebool Constraint_False)
   }
   Evar id -> do {
     val <- lookvar state id;
-    Ok val
+    Ok (state, val)
   }
   Econst cons -> do {
-    Ok cons
+    Ok (state, cons)
 --    case cons of
 --      Eint i -> Ok (Eint i)
 --      Ebool b -> if b then Ok $ Ebool Constraint_True else Ok $ Ebool Constraint_False

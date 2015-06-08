@@ -99,6 +99,17 @@ getFun id (St (Vst vst, Fst fst, Bst bst, BottomState)) =
 getFun id (St (Vst vst, Fst fst, Bst bst, stc)) =
   getFun id stc
 
+-- add one empty state layer on existing state
+wind_state :: State -> State
+wind_state st = St (Vst [], Fst [], Bst [], st)
+
+unwind_state :: State -> State
+unwind_state state@(St (_, _, _, deep_s)) =
+  case deep_s of
+    -- to save the deppest state (output)
+    BottomState -> state
+    otherwise -> deep_s
+
 -- update state by funciton arguments
 enrich:: State -> Ident -> [(FArg, IParam)] -> Err State
 enrich state id [] = Ok state
@@ -117,7 +128,7 @@ enrich state id ((arg, InvokeParamater param):rest) = do
            cons <- lookvar state id;
            declare state t i cons
          otherwise -> Bad "only var or value in funcito invoke";
-   Ok new_state
+   enrich new_state id rest
 
 toBuffer :: State -> Constraint -> Err State
 toBuffer state@(St (Vst vst, Fst fst, Bst bst, BottomState)) mesg = do
