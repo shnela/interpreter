@@ -1,0 +1,13 @@
+SOLUTION
+  Integer fun(Integer a)
+  DO
+    RETURN 2 * a;
+  RETURNED
+
+  Integer fun2(Integer a)
+  DO
+    PRINT a
+  RETURNED
+
+  fun2(fun(2));
+CYA

@@ -8,6 +8,7 @@ SOLUTION
     Integer i = 20;
     PRINT i;
   FI
+  PRINT i;
   i = 30;
   PRINT i;
 CYA
