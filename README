@@ -1,34 +1,31 @@
-Projekt zawiera pliki wygenerowane przez bcnf (gramatyka taka sama jak oddana w poprzednim etapie, bnfc nie zgłasza błędów).
+This project contains bnfc generated files. This is the same grammar as in the first task (I've only changed comments pattern).
 
-Rozwiązanie znajduje się w plikach:
+Solution is included in the following files:
 Interpret.hs:
-- tutaj odbywa się wczytywanie pliku wejściowego
-- polecam funkcje pomagająca przy debugowaniu zostawiłem włączone (show_info, debug)
+- which is responsible for reading input file
+- I suggest you to use helper functions: shof_info and debug, wchich are uncommented in my code
 
 Misc.hs:
-- tutaj znajduje się wszystko, co dotyczy zarządzania stanami
-- przechowuję w stanie:
-  - [Vst] zmienne
-  - [Fst] funkcje
-  - [Bst] bufor wyjścia - dla instrukcji PRINT - wypisywanie nie jest realizowane na bieżąco ani przy błędnym wykonaniu programu
-  - [Stc] stos (co umożliwia zagnieżdżenia zmiennych, a także rekurencję (jeszcze niezrobiona))
+- this file is responsible for state management
+- stored in state:
+  - [Vst] variables
+  - [Fst] functions
+  - [Bst] output buffer - PRINT function as well as error messages are printed at the end of the program
+  - [Stc] stack (which helps to declare nested variables and recursion)
 
 Interpreter.hs:
-- tutaj znajduje się główna część kodu interpretera
+- main part of the interpeter code
 
-Interpreter sprawdza typy dynamicznie w trakcie działania i o ile to możliwe aplikuje tosowne konwersje.
+Interpreter checks types dynamically during program run and applies default conversions if only it's possible.
 
-Instrukcja for (FOR id IN exp ...) uniemożliwia użytkownikowi ingerowanie w jej przebieg (zmienna id jest 'schowana' jeden stan niżej niż stan bloku, przez co niemożliwa jest jej modyfikacja, przy jednoczesnej możliwości odczytu wartości, podobnie wyrażenie exp wyliczane jest tylko raz - przed pierwszym przebiegiem) [edit: instrukcja nie działa jeszcze poprawnie...]
+Instruction for (FOR in IN exp ...) has protected counter (variable id is stored one state 'below' block state, so relevant changing its value is impossible, but value can be read in the same time. Expression exp is evaluated once - before first loop.
 
-Deklaracje zmiennych dozwolone są jednokrotnie w obrębie bloku, natomiast w nowym bloku można przysłaniać zadeklarowane wcześniej zmienna (podobnie jak w C++).
+Variable declarations are limited to one per block, but in inside block you can declare new variable with the same name as in outisde block (similar to C++).
 
-W przypadku funkcji deklaracja jest dozwolona jedynie w zewnętrznym bloku (wynika to z implementacji interpretera, a nie z gramatyki języka, według której można dynamicznie deklarować funkcje). Czy taki zabieg jest dozwolony?
+Function declarations are allowed only in the outer block (it's allowed by grammar, but not by implementation).
 
-Opisaną funkcjonalność może Pan sprawdzić w katalogach good/bad, gdzie znajdują się pliki źródłowe opatrzone komentarzem.
-
-
-Brakujące elementy:
-Niestety nie byłem w stanie zaimplementować funkcji, jednak mam nadzieję, że będę mógł dosłać implementację brakujących elementów mailem. Napisałem trochę kodu, który stanowi szablon dla deklaracji i wywoływania funkcji, dodatkowo mając gotowe narzędzie do deklaracji zmiennych i wielopoziomowe środowisko, dalsza implementacja nie powinna stanowić problemu.
-Niedziałający for.
-Jednoargumentowe operatory ++ --.
+You can check interpreter by running on students machine (threre may be problems with ghc higher than version 7.6.3)
+$ make
+$ ./interpeter ./good/some_program.shl # for good examples
+$ ./interpeter ./bad/some_program.shl # for examples which generate errors
 
