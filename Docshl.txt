@@ -45,7 +45,7 @@ The symbols used in shl are the following:
   | -- |  |  | 
 
 ===Comments===
-Single-line comments begin with <==3.Multiple-line comments are  enclosed with <= and =3.
+Single-line comments begin with //.Multiple-line comments are  enclosed with /* and */.
 
 ==The syntactic structure of shl==
 Non-terminals are enclosed between < and >. 

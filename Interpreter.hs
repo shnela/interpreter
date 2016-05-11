@@ -124,7 +124,7 @@ enrich state id ((arg, InvokeParamater param):rest) = do
      FArgument t i ->  do
       (state, cons) <- evalExpression param state;
       declare state t i cons
-     FArggumentRef t i -> 
+     FArgumentRef t i -> 
        case param of
          Evar param_id -> refer state t i t param_id
          otherwise -> Bad "only var or value in funciton invoke";

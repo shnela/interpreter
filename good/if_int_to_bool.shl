@@ -1,4 +1,4 @@
-<= similar to if.shl, but uses integers instead of Booleans, you can also check that string deosn't work =3
+/* similar to if.shl, but uses integers instead of Booleans, you can also check that string deosn't work */
 SOLUTION
   Integer f = 0;
   Integer t = 42;

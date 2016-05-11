@@ -1,4 +1,4 @@
-<= nested if - check states =3
+/* nested if - check states */
 
 SOLUTION
   Integer val;

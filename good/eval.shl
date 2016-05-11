@@ -1,4 +1,4 @@
-<= simple var evaluation and operands order test =3
+/* simple var evaluation and operands order test */
 
 SOLUTION
   Integer multi = 2 + 2 * 2;

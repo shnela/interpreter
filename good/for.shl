@@ -1,5 +1,5 @@
-<= this program tests for loop =3
-<= not finished - wont work for range > 1 =3
+/* this program tests for loop */
+/* not finished - wont work for range > 1 */
 
 SOLUTION
   Integer range = 10;

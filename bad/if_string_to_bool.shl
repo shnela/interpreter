@@ -1,4 +1,4 @@
-<= string cannot be converted to bool =3
+/* string cannot be converted to bool */
 
 SOLUTION
   String h = "txt";

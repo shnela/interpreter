@@ -1,4 +1,4 @@
-<= one declaration per block =3
+/* one declaration per block */
 
 SOLUTION
   Integer i = 10;

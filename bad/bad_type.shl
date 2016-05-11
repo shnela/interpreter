@@ -1,4 +1,4 @@
-<= this program shows that we cannot assign value of bad type =3
+/* this program shows that we cannot assign value of bad type */
 
 SOLUTION
   Integer i = 10;

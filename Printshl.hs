@@ -1,5 +1,3 @@
--- Jakub Kuszneruk jk320790
-
 {-# OPTIONS -fno-warn-incomplete-patterns #-}
 module Printshl where
 
@@ -122,7 +120,7 @@ instance Print Dec where
 instance Print FArg where
   prt i e = case e of
    FArgument typ id -> prPrec i 0 (concatD [prt 0 typ , prt 0 id])
-   FArggumentRef typ id -> prPrec i 0 (concatD [doc (showString "REF") , prt 0 typ , prt 0 id])
+   FArgumentRef typ id -> prPrec i 0 (concatD [doc (showString "REF") , prt 0 typ , prt 0 id])
 
   prtList es = case es of
    [] -> (concatD [])

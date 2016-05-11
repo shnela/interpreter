@@ -1,4 +1,4 @@
-<= connot use undeclared variables =3
+/* connot use undeclared variables */
 
 SOLUTION
   i = 20;

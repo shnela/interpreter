@@ -21,8 +21,8 @@ $u = [\0-\255]          -- universal: any character
    \; | \= | \( | \) | \, | \= \= | \! \= | \< | \> | \< \= | \> \= | \+ | \- | \* | \/ | \+ \+ | \- \-
 
 :-
-"<==3" [.]* ; -- Toss single line comments
-"<=" ([$u # \=] | \= [$u # \3])* ("=")+ "3" ; 
+"//" [.]* ; -- Toss single line comments
+"/*" ([$u # \*] | \* [$u # \/])* ("*")+ "/" ; 
 
 $white+ ;
 @rsyms { tok (\p s -> PT p (eitherResIdent (TV . share) s)) }

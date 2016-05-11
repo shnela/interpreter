@@ -1,4 +1,4 @@
-<= reference and value arguments =3
+/* reference and value arguments */
 
 SOLUTION
   Integer print2(Integer a, Integer b)

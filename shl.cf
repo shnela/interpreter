@@ -1,7 +1,7 @@
 -- jk320790
 
-comment "<=" "=3" ;
-comment "<==3" ;
+comment "/*" "*/" ;
+comment "//" ;
 
 Program.  Prog  ::= "SOLUTION" Blk "CYA" ;
 

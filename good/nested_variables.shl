@@ -1,4 +1,4 @@
-<= this shows how nested declarations works =3
+/* this shows how nested declarations works */
 
 SOLUTION
   Integer i = 10;

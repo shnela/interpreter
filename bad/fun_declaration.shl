@@ -1,4 +1,4 @@
-<= function declaration allowed only in outermost block =3
+/* function declaration allowed only in outermost block */
 
 SOLUTION
   Boolean declare = True;
