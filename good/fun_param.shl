@@ -6,7 +6,7 @@ SOLUTION
 
   Integer fun2(Integer a)
   DO
-    PRINT a
+    PRINT a;
   RETURNED
 
   fun2(fun(2));

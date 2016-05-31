@@ -120,6 +120,8 @@ instance Print Dec where
 instance Print FArg where
   prt i e = case e of
    FArgument typ id -> prPrec i 0 (concatD [prt 0 typ , prt 0 id])
+   FArgumentAssing typ id exp -> prPrec i 0 (concatD [prt 0 typ , prt 0 id , doc (showString "=") , prt 0 exp])
+   FArgumentFunc typ id fargs -> prPrec i 0 (concatD [prt 0 typ , prt 0 id , doc (showString "(") , prt 0 fargs , doc (showString ")")])
    FArgumentRef typ id -> prPrec i 0 (concatD [doc (showString "REF") , prt 0 typ , prt 0 id])
 
   prtList es = case es of

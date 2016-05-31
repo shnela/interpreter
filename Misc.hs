@@ -12,55 +12,68 @@ data VarState = Vst[(Typ, Ident, Constraint)]
   deriving Show
 data RefState = Rst[(Typ, Ident, Ident)]
   deriving Show
-data FunState = Fst[(Typ, Ident, [FArg], Blk)]
+data FunState = Fst[(Typ, Ident, [FArg], Blk, Integer)]
   deriving Show
 data BufState = Bst[Constraint]
   deriving Show
 data RetValue = Return Constraint | NotRet
   deriving Show
 
-data State = St(VarState, RefState, FunState, BufState, State, RetValue) | BottomState
+data State = St(VarState, RefState, FunState, BufState, State, RetValue, Integer, Integer, Integer) | BottomState
   deriving Show
+{-
+ - VarState - stored variables
+ - RefState - stored references (mapping id to id)
+ - FunState - stored functions
+ - BufState - informations to print at the end of the program
+ - State - parent state (state 1lvl below us)
+ - RetValue -
+ - Integer - state lvl (how deep we are, useful for static binding - function remember how deep was it defined)
+ - Integer - lvl on which current function was declared
+ - Integer - lvl when function was invoked
+-}
 
 
 
 getRetValue :: State -> Err Constraint
-getRetValue (St (_, _, _, _, _, NotRet)) = Ok $ Eint 0
-getRetValue (St (_, _, _, _, _, Return ret)) = Ok ret
+getRetValue (St (_, _, _, _, _, NotRet, _, _, _)) = Ok $ Eint 0
+getRetValue (St (_, _, _, _, _, Return ret, _, _, _)) = Ok ret
 
 setRetValue :: State -> RetValue -> State
-setRetValue (St (vst, rst, fst, bst, st, _)) ret = St(vst, rst, fst, bst, st, ret)
+setRetValue (St (vst, rst, fst, bst, st, _, clvl, flvl, ilvl)) ret =
+  St(vst, rst, fst, bst, st, ret, clvl, flvl, ilvl)
+
+-- set proper function declaration state lvl and function invoke state lvl in state
+setFlvl :: State -> Integer -> Integer -> State
+setFlvl (St (vst, rst, fst, bst, st, ret, clvl, _, _)) flvl ilvl =
+  St(vst, rst, fst, bst, st, ret, clvl, flvl, ilvl)
+
+-- helper function
+findVarId id found (t, i, c)
+  | i == id = (t, i, c)
+  | otherwise = found
 
 
-getRefTranslation :: State -> Ident -> Err Ident
-getRefTranslation BottomState id = Ok id
-getRefTranslation (St (_, Rst rst, _, _, stc, _)) id =
-  let {
-    find found (t, i, c)
-      | i == id = (t, i, c)
-      | otherwise = found }
-  in
+getRefTranslation :: State -> Ident -> Integer -> Either (Ident, Integer) Ident
+getRefTranslation BottomState id _ = Right id
+getRefTranslation (St (_, Rst rst, _, _, stc, _, clvl, _, _)) id top_ilvl =
+--  if (clvl >= top_ilvl) && (any (\(_, i, _) -> id == i) rst)
   if (any (\(_, i, _) -> id == i) rst)
-    then Ok ((\(_, _, c) -> c)(foldl find (head rst) rst))
-    else getRefTranslation stc id
+    then Left (((\(_, _, c) -> c)(foldl (findVarId id) (head rst) rst)), clvl)
+    else getRefTranslation stc id top_ilvl
 
-lookvarR :: State -> Ident -> Err Constraint
-lookvarR BottomState id = Bad $ "no such varbiable: " ++ (show id)
-lookvarR state@(St (Vst vst, Rst rst, _, _, stc, _)) id =
-  let {
-    find found (t, i, c)
-      | i == id = (t, i, c)
-      | otherwise = found }
-  in do {
-  if (any (\(_, i, _) -> id == i) vst)
-    then Ok ((\(_, _, c) -> c)(foldl find (head vst) vst))
-    else lookvarR stc id
-  }
+lookvarR :: State -> Ident -> Integer -> Integer -> Err Constraint
+lookvarR BottomState id _ _ = Bad $ "no such varbiable: " ++ (show id)
+lookvarR (St (Vst vst, _, _, _, stc, _, clvl, _, _)) id top_flvl top_ilvl =
+    if (clvl <= top_flvl || clvl > top_ilvl) && (any (\(_, i, _) -> id == i) vst)
+      then Ok ((\(_, _, c) -> c)(foldl (findVarId id) (head vst) vst))
+      else lookvarR stc id top_flvl top_ilvl
 
 lookvar :: State -> Ident -> Err Constraint
-lookvar state@(St (Vst vst, Rst rst, _, _, stc, _)) id = do
-  translated_id <- getRefTranslation state id;
-  lookvarR state translated_id
+lookvar state@(St (Vst vst, Rst rst, _, _, stc, _, clvl, top_flvl, top_ilvl)) id = do
+  case getRefTranslation state id top_ilvl of
+    Left (translated_id, var_lvl) -> lookvarR state translated_id var_lvl (clvl+99)
+    Right translated_id -> lookvarR state translated_id top_flvl top_ilvl
 
 getType :: Constraint -> Err Typ
 getType con =
@@ -68,124 +81,102 @@ getType con =
   Eint _ -> Ok TInt
   Ebool _ -> Ok TBool
   Estring _ -> Ok TString
-  otherwise -> Bad "Unknown type"
 
-updateR :: State -> Ident -> Constraint -> Err State
-updateR BottomState id con =
+updateR :: State -> Ident -> Constraint -> Integer -> Integer -> Err State
+updateR BottomState id con top_flvl top_ilvl =
   case getType con of
   Ok t -> Bad $ "No such identifier: " ++ (show id) ++ " of type: " ++ (show t) ++ " to update."
   otherwise -> Bad "Unknown error during resolving variable type"
-updateR (St (Vst vst, Rst rst, Fst fst, Bst bst, stc, _)) id con =
+updateR (St (Vst vst, Rst rst, Fst fst, Bst bst, stc, _, clvl, flvl, ilvl)) id con top_flvl top_ilvl =
   let { updateV el@(t, i, c)
         | i == id = (t, i, con)
         | otherwise = el }
     in
-    if (any (\(t, i, _) -> id == i && (getType con == Ok t)) vst)
+    if ((clvl <= top_flvl || clvl > top_ilvl) && any (\(t, i, _) -> id == i && (getType con == Ok t)) vst)
       then
-        Ok $ St(
-          Vst (map updateV vst),
-          Rst rst,
-          Fst fst,
-          Bst bst,
-          stc,
-          NotRet)
+        Ok $ St(Vst (map updateV vst), Rst rst, Fst fst, Bst bst, stc,
+          NotRet, clvl, flvl, ilvl)
       else do
-        updated_state <- updateR stc id con;
-        Ok $ St(
-          Vst vst,
-          Rst rst,
-          Fst fst,
-          Bst bst,
-          updated_state,
-          NotRet)
+        updated_state <- updateR stc id con top_flvl top_ilvl;
+        Ok $ St(Vst vst, Rst rst, Fst fst, Bst bst, updated_state,
+          NotRet, clvl, flvl, ilvl)
+
 update :: State -> Ident -> Constraint -> Err State
-update state@(St (Vst vst, Rst rst, Fst fst, Bst bst, stc, _)) id con = do
-  id <- getRefTranslation state id;
-  v <- lookvarR state id;
-  updateR state id con
+update state@(St (Vst vst, Rst rst, Fst fst, Bst bst, stc, _, clvl, t_flvl, t_ilvl)) id con = do
+  case getRefTranslation state id t_ilvl of
+    Left (translated_id, var_lvl) -> updateR state translated_id con var_lvl (clvl+99)
+    Right translated_id -> updateR state translated_id con t_flvl t_ilvl
 
 declare :: State -> Typ -> Ident -> Constraint -> Err State
-declare state@(St (Vst vst, Rst rst, Fst fst, Bst bst, stc, _)) typ id con =
+declare state@(St (Vst vst, Rst rst, Fst fst, Bst bst, stc, _, clvl, flvl, ilvl)) typ id con =
   if (any (\(_, i, _) -> id == i) vst)
     then Bad "Identifier is declared in this scope"
-    else Ok (St(
-      Vst ((typ, id, con):vst),
-      Rst rst,
-      Fst fst,
-      Bst bst,
-      stc,
-      NotRet))
+    else Ok (
+      St(Vst ((typ, id, con):vst), Rst rst, Fst fst, Bst bst, stc,
+        NotRet, clvl, flvl, ilvl))
 
 -- declare for references
 refer :: State -> Typ -> Ident -> Typ -> Ident -> Err State
-refer state@(St (Vst vst, Rst rst, Fst fst, Bst bst, stc, _)) typ1 id1 typ2 id2 =
+refer state@(St (Vst vst, Rst rst, Fst fst, Bst bst, stc, _, clvl, flvl, ilvl)) typ1 id1 typ2 id2 =
   if typ1 /= typ2 then Bad "Type mismatch"
     else
     if (any (\(_, i, _) -> id1 == i) rst) then Bad "Reference is declared in this scope"
       else if any (\(t, i, _) -> id2 == i && (typ1 == t)) vst
         then Bad "No such variable to map"
-        else Ok (St(
-          Vst vst,
-          Rst ((typ1, id1, id2):rst),
-          Fst fst,
-          Bst bst,
-          stc,
-          NotRet))
+        else Ok (
+          St(Vst vst, Rst ((typ1, id1, id2):rst), Fst fst, Bst bst, stc,
+            NotRet, clvl, flvl, ilvl))
 
 declareF :: State -> Typ -> Ident -> [FArg] -> Blk -> Err State
-declareF (St (Vst vst, Rst rst, Fst fst, Bst bst, BottomState, _)) typ id args blk =
-  if (any (\(_, i, _, _) -> id == i) fst)
-    then Bad "function exists"
-    else Ok (St(
-      Vst vst,
-      Rst rst,
-      Fst ((typ, id, args, blk):fst),
-      Bst bst,
-      BottomState,
-      NotRet))
+declareF state@(St (Vst vst, Rst rst, Fst fst, Bst bst, st, _, clvl, flvl, ilvl)) typ id args blk =
+  if (any (\(_, i, _, _, _) -> id == i) fst)
+    then Bad "Function with such name is defined"
+    else Ok (
+      St(Vst vst, Rst rst, Fst ((typ,  id,  args,  blk,  clvl):fst), Bst bst,
+        st, NotRet, clvl, flvl, ilvl))
 declareF _ _ _ _ _ = Bad "function declaration allowed only in outermost block"
 
-getFun :: Ident -> State -> Err (Typ, Ident, [FArg], Blk)
-getFun id BottomState = Bad "function doesn't exists"
-getFun id (St (Vst vst, Rst rst, Fst fst, Bst bst, BottomState, _)) =
-  let {find found (t, i, a, c)
-    | i == id = (t, i, a, c)
-    | otherwise = found }
-  in if (any (\(_, i, _, _) -> id == i) fst)
-    then Ok (foldl find (head fst) fst)
-    else Bad "function doesn't exists"
-getFun id (St (Vst vst, Rst rst, Fst fst, Bst bst, stc, _)) =
-  getFun id stc
+-- helper function
+findFunId id found (t, i, a, c, dlvl)
+  | i == id = (t, i, a, c, dlvl)
+  | otherwise = found
+
+getFunR :: State -> Ident -> Integer -> Integer -> Err (Typ, Ident, [FArg], Blk, Integer)
+getFunR BottomState id _ _ = Bad $ "function:" ++ (show id) ++ "doesn't exist"
+getFunR (St (Vst vst, Rst rst, Fst fst, Bst bst, stc, _, clvl, _, _)) id top_flvl top_ilvl =
+  if (clvl <= top_flvl || clvl > top_ilvl) && (any (\(_, i, _, _, _) -> id == i) fst)
+    then Ok $ foldl (findFunId id) (head fst) fst
+    else getFunR stc id top_flvl top_ilvl
+
+getFun :: State -> Ident -> Err (Typ, Ident, [FArg], Blk, Integer)
+-- getFun BottomState _ = Bad "function doesn't exist"
+getFun state@(St (Vst vst, Rst rst, Fst fst, Bst bst, stc, _, clvl, t_flvl, t_ilvl)) id =
+  getFunR state id t_flvl t_ilvl
 
 -- add one empty state layer on existing state
 wind_state :: State -> State
-wind_state st = St (Vst [], Rst [], Fst [], Bst [], st, NotRet)
+wind_state BottomState =
+  St (Vst [], Rst [], Fst [], Bst [], BottomState, NotRet, 1, 1, 1)
+wind_state st@(St (_, _, _, _, _, _, clvl, flvl, ilvl)) =
+  St (Vst [], Rst [], Fst [], Bst [], st, NotRet, clvl + 1, flvl, ilvl)
 
 unwind_state :: State -> State
-unwind_state state@(St (_, _, _, _, deep_s, retVal)) =
+unwind_state state@(St (_, _, _, _, deep_s, retVal, _, _, _)) =
   case deep_s of
     -- to save the deppest state (output)
     BottomState -> state
     otherwise -> setRetValue deep_s retVal
 
 toBuffer :: State -> Constraint -> Err State
-toBuffer state@(St (Vst vst, Rst rst, Fst fst, Bst bst, BottomState, _)) mesg = do
-    Ok (St(
-      Vst vst,
-      Rst rst,
-      Fst fst,
-      Bst (mesg:bst),
-      BottomState,
-      NotRet))
-toBuffer (St (Vst vst, Rst rst, Fst fst, Bst bst, stc, _)) mesg = do
+toBuffer state@(St (Vst vst, Rst rst, Fst fst, Bst bst, BottomState, _, clvl, flvl, ilvl)) mesg =
+    Ok (
+      St( Vst vst, Rst rst, Fst fst, Bst (mesg:bst),
+        BottomState, NotRet, clvl, flvl, ilvl))
+toBuffer (St (Vst vst, Rst rst, Fst fst, Bst bst, stc, _, clvl, flvl, ilvl)) mesg = do
   new_state <- toBuffer stc mesg
-  Ok (St(
-    Vst vst,
-    Rst rst,
-    Fst fst,
-    Bst bst,
-    new_state,
-    NotRet))
+  Ok (
+    St( Vst vst, Rst rst, Fst fst, Bst bst,
+      new_state, NotRet, clvl, flvl, ilvl))
 
 --modify :: Ident -> Constraint -> State -> Err State
 --modify id con (St st) =

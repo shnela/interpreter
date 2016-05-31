@@ -27,13 +27,17 @@ interpretBlock b st = case b of
 --declarations
 loadDeclarations :: [Dec] -> State -> Err State
 loadDeclarations [] st = Ok st
-loadDeclarations (d:decs) st  = case d of
+loadDeclarations (d:decs) st@(St (Vst vst, Rst rst, Fst fst, Bst bst, stc, _, clvl, flvl, ilvl))  = case d of
   Declaration t id -> do {
+--    tmp <- toBuffer st $ Eint (100 + clvl);
+--    new_state <- (declare tmp t id $ defaultValue t);
     new_state <- (declare st t id $ defaultValue t);
     loadDeclarations decs new_state
     }
   DeclarationAssing t id e -> do {
     (st, exp) <- evalExpression e st;
+--    tmp <- toBuffer st $ Eint (100 + clvl);
+--    new_state <- (declare tmp t id exp);
     new_state <- (declare st t id exp);
     loadDeclarations decs new_state
     }
@@ -55,7 +59,7 @@ runFor id end_val blk state = do
 runStatments :: [Stm] -> State -> Err State
 runStatments [] state = Ok state
 runStatments (s:t) state = do
-  new_state@(St (_, _, _, _, _, ret)) <- case s of
+  new_state@(St (_, _, _, _, _, ret, _, _, _)) <- case s of
     ForLoop id exp blk -> do {
         (state, end_cons) <- evalExpression exp state;
         case end_cons of
@@ -91,14 +95,17 @@ runStatments (s:t) state = do
     }
 
     ReturnStmt exp -> do {
-      (state@(St (Vst vst, Rst rst, Fst fst, Bst bst, stc, _)), cons) <- evalExpression exp state;
+      (state@(St (Vst vst, Rst rst, Fst fst, Bst bst, stc, _, clvl, flvl, ilvl)), cons) <- evalExpression exp state;
       Ok $ St(
         Vst vst,
         Rst rst,
         Fst fst,
         Bst bst,
         stc,
-        Return cons)
+        Return cons,
+        clvl,
+        flvl,
+        ilvl)
     }
 
     ExpStmt exp -> do {
@@ -124,6 +131,8 @@ enrich state id ((arg, InvokeParamater param):rest) = do
      FArgument t i ->  do
       (state, cons) <- evalExpression param state;
       declare state t i cons
+--     FArgumentFun t i args -> do
+--      declareF state t i args
      FArgumentRef t i -> 
        case param of
          Evar param_id -> refer state t i t param_id
@@ -132,7 +141,7 @@ enrich state id ((arg, InvokeParamater param):rest) = do
 
 --expresions
 evalExpression :: Exp -> State -> Err (State, Constraint)
-evalExpression e state =
+evalExpression e state@(St (Vst vst, Rst rst, Fst fst, Bst bst, stc, _, clvl, flvl, ilvl)) =
   let eval e1 e2 f = do {
     (state, x) <- evalExpression e1 state;
     (state, y) <- evalExpression e2 state;
@@ -157,8 +166,13 @@ evalExpression e state =
   Etimes e1 e2 -> eval e1 e2 (*)
   Ediv e1 e2 -> eval e1 e2 quot
   Einvok id params -> do {
-    (typ, id, fargs, blk) <- getFun id state;
-    new_start_state <- enrich (wind_state state) id (zip fargs $ params);
+    (typ, id, fargs, blk, f_st) <- getFun state id;
+    enriched_start_state <- enrich (wind_state state) id (zip fargs $ params);
+    new_start_state <- Ok $ setFlvl enriched_start_state f_st clvl;
+--    tmp <- toBuffer new_start_state $ Eint clvl;
+--    tmp2 <- toBuffer tmp $ Eint f_st;
+--    tmp3 <- toBuffer tmp2 $ Eint clvl;
+--    new_state <- interpretBlock blk tmp3;
     new_state <- interpretBlock blk new_start_state;
     ret_val <- getRetValue new_state;
     ret_type <- getType ret_val;
@@ -166,6 +180,11 @@ evalExpression e state =
       else Ok (unwind_state new_state, ret_val)
   }
   Evar id -> do {
+--    tmp <- toBuffer state $ Eint (200 + clvl);
+--    tmp2 <- toBuffer tmp $ Eint (200 + flvl);
+--    tmp3 <- toBuffer tmp2 $ Eint (200 + ilvl);
+--    val <- lookvar state id;
+--    Ok (tmp3, val)
     val <- lookvar state id;
     Ok (state, val)
   }
@@ -190,4 +209,3 @@ convert_constraint_to_bool c = case c of
       Ebool b -> return $ b == Constraint_True
       Eint i -> return $ i /= 0
       Estring _ -> Bad "cannot convert string to Boolean"
-      otherwise -> Bad "cannot convert to Boolean"

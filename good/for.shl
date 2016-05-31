@@ -1,5 +1,4 @@
 /* this program tests for loop */
-/* not finished - wont work for range > 1 */
 
 SOLUTION
   Integer range = 10;

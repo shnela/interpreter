@@ -18,13 +18,18 @@ Assign.      Stm ::= Ident "=" Exp ";" ;
 [].      [Stm] ::= ;
 (:).     [Stm] ::= Stm [Stm] ;
 
+-- LAMBDA
+-- Lambda.      Exp ::= LAMBDA Typ ":" 
+
 -- DECLARATIONS
 Declaration.        Dec ::= Typ Ident ";" ;
 DeclarationAssing.  Dec ::= Typ Ident "=" Exp ";" ;
 DeclarationFunc.    Dec ::= Typ Ident "(" [FArg] ")" "DO" Blk "RETURNED" ;
 
 FArgument.        FArg ::= Typ Ident ;
-FArgumentRef.    FArg ::= "REF" Typ Ident ;
+FArgumentAssing.  FArg ::= Typ Ident "=" Exp ;
+FArgumentFunc.    FArg ::= Typ Ident "(" [FArg] ")";
+FArgumentRef.     FArg ::= "REF" Typ Ident ;
 
 [].       [FArg] ::= ;
 (:[]).    [FArg] ::= FArg ;

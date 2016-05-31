@@ -1,0 +1,6 @@
+/* connot use undeclared variables */
+
+SOLUTION
+  Integer i;
+  i = 1 / 0;
+CYA

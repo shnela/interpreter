@@ -1,0 +1,18 @@
+SOLUTION
+  Integer x;
+
+  Integer fun()
+  DO
+    PRINT x;
+  RETURNED
+
+  Integer fun2()
+  DO
+    Integer x = 42;
+    PRINT x;
+    fun();
+  RETURNED
+
+  x = 10;
+  fun2();
+CYA

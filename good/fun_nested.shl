@@ -1,0 +1,19 @@
+SOLUTION
+  Integer fun0()
+  DO
+    Integer fun00()
+    DO
+      PRINT "00";
+      fun1();
+    RETURNED
+    PRINT "0";
+    fun00();
+  RETURNED
+
+  Integer fun1()
+  DO
+    PRINT "1";
+  RETURNED
+
+  fun0();
+CYA

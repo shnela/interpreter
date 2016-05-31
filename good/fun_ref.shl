@@ -1,0 +1,14 @@
+SOLUTION
+  /* this would not work with naive REF implementation (just looking to id mapping) */
+  Integer sum(REF Integer a)
+  DO
+    Integer b = 3;
+    PRINT a;
+    a = 4;
+  RETURNED
+
+  Integer a = 1 ;
+  Integer b = 2 ;
+  sum(b);
+  PRINT b;
+CYA

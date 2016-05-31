@@ -68,6 +68,8 @@ All other symbols are terminals.
   |  |  **|**  | //Typ// //Ident// ``=`` //Exp// ``;`` 
   |  |  **|**  | //Typ// //Ident// ``(`` //[FArg]// ``)`` ``DO`` //Blk// ``RETURNED`` 
   | //FArg// | -> | //Typ// //Ident// 
+  |  |  **|**  | //Typ// //Ident// ``=`` //Exp// 
+  |  |  **|**  | //Typ// //Ident// ``(`` //[FArg]// ``)`` 
   |  |  **|**  | ``REF`` //Typ// //Ident// 
   | //[FArg]// | -> | **eps**
   |  |  **|**  | //FArg// 

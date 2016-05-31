@@ -1,0 +1,15 @@
+/* reference and value arguments */
+
+SOLUTION
+  Integer test()
+  DO
+    PRINT("function as argument");
+  RETURNED
+
+  Integer fun_arg(Integer a)
+  DO
+    a();
+  RETURNED
+
+  fun_arg(test);
+CYA

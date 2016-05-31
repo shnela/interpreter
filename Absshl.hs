@@ -30,6 +30,8 @@ data Dec =
 
 data FArg =
    FArgument Typ Ident
+ | FArgumentAssing Typ Ident Exp
+ | FArgumentFunc Typ Ident [FArg]
  | FArgumentRef Typ Ident
   deriving (Eq,Ord,Show)
 

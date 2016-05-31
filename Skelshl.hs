@@ -45,6 +45,8 @@ transDec x = case x of
 transFArg :: FArg -> Result
 transFArg x = case x of
   FArgument typ id  -> failure x
+  FArgumentAssing typ id exp  -> failure x
+  FArgumentFunc typ id fargs  -> failure x
   FArgumentRef typ id  -> failure x
 
 

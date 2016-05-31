@@ -114,6 +114,8 @@ Dec : Typ Ident ';' { Declaration $1 $2 }
 
 FArg :: { FArg }
 FArg : Typ Ident { FArgument $1 $2 } 
+  | Typ Ident '=' Exp { FArgumentAssing $1 $2 $4 }
+  | Typ Ident '(' ListFArg ')' { FArgumentFunc $1 $2 $4 }
   | 'REF' Typ Ident { FArgumentRef $2 $3 }
 
 
