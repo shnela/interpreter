@@ -33,16 +33,16 @@ The set of reserved words is the set of terminals appearing in the grammar. Thos
 The reserved words used in shl are the following:
   | ``Boolean`` | ``CYA`` | ``DO`` | ``DONE``
   | ``ELSE`` | ``FI`` | ``FOR`` | ``False``
-  | ``IF`` | ``IN`` | ``Integer`` | ``PRINT``
-  | ``REF`` | ``RETURN`` | ``RETURNED`` | ``SOLUTION``
-  | ``String`` | ``THEN`` | ``True`` | 
+  | ``IF`` | ``IN`` | ``Integer`` | ``LAMBDA``
+  | ``PRINT`` | ``REF`` | ``RETURN`` | ``RETURNED``
+  | ``SOLUTION`` | ``String`` | ``THEN`` | ``True``
 
 The symbols used in shl are the following:
   | ; | = | ( | )
   | , | == | != | <
   | > | <= | >= | +
   | - | * | / | ++
-  | -- |  |  | 
+  | -- | ! | : | 
 
 ===Comments===
 Single-line comments begin with //.Multiple-line comments are  enclosed with /* and */.
@@ -98,6 +98,8 @@ All other symbols are terminals.
   |  |  **|**  | //Ident// ``(`` //[IParam]// ``)`` 
   |  |  **|**  | //Ident// 
   |  |  **|**  | //Constraint// 
+  |  |  **|**  | //Ident// ``!`` 
+  |  |  **|**  | ``LAMBDA`` //[FArg]// ``:`` //Exp// 
   |  |  **|**  | //Exp6// 
   | //Exp1// | -> | //Exp2// 
   | //Exp6// | -> | ``(`` //Exp// ``)`` 

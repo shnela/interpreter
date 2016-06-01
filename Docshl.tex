@@ -48,10 +48,10 @@ The reserved words used in shl are the following: \\
 {\reserved{Boolean}} &{\reserved{CYA}} &{\reserved{DO}} \\
 {\reserved{DONE}} &{\reserved{ELSE}} &{\reserved{FI}} \\
 {\reserved{FOR}} &{\reserved{False}} &{\reserved{IF}} \\
-{\reserved{IN}} &{\reserved{Integer}} &{\reserved{PRINT}} \\
-{\reserved{REF}} &{\reserved{RETURN}} &{\reserved{RETURNED}} \\
-{\reserved{SOLUTION}} &{\reserved{String}} &{\reserved{THEN}} \\
-{\reserved{True}} & & \\
+{\reserved{IN}} &{\reserved{Integer}} &{\reserved{LAMBDA}} \\
+{\reserved{PRINT}} &{\reserved{REF}} &{\reserved{RETURN}} \\
+{\reserved{RETURNED}} &{\reserved{SOLUTION}} &{\reserved{String}} \\
+{\reserved{THEN}} &{\reserved{True}} & \\
 \end{tabular}\\
 
 The symbols used in shl are the following: \\
@@ -62,7 +62,8 @@ The symbols used in shl are the following: \\
 {\symb{!{$=$}}} &{\symb{{$<$}}} &{\symb{{$>$}}} \\
 {\symb{{$<$}{$=$}}} &{\symb{{$>$}{$=$}}} &{\symb{{$+$}}} \\
 {\symb{{$-$}}} &{\symb{*}} &{\symb{/}} \\
-{\symb{{$+$}{$+$}}} &{\symb{{$-$}{$-$}}} & \\
+{\symb{{$+$}{$+$}}} &{\symb{{$-$}{$-$}}} &{\symb{!}} \\
+{\symb{:}} & & \\
 \end{tabular}\\
 
 \subsection*{Comments}
@@ -159,6 +160,8 @@ All other symbols are terminals.\\
  & {\delimit}  &{\nonterminal{Ident}} {\terminal{(}} {\nonterminal{ListIParam}} {\terminal{)}}  \\
  & {\delimit}  &{\nonterminal{Ident}}  \\
  & {\delimit}  &{\nonterminal{Constraint}}  \\
+ & {\delimit}  &{\nonterminal{Ident}} {\terminal{!}}  \\
+ & {\delimit}  &{\terminal{LAMBDA}} {\nonterminal{ListFArg}} {\terminal{:}} {\nonterminal{Exp}}  \\
  & {\delimit}  &{\nonterminal{Exp6}}  \\
 \end{tabular}\\
 

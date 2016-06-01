@@ -57,6 +57,8 @@ data Exp =
  | Einvok Ident [IParam]
  | Evar Ident
  | Econst Constraint
+ | Ewww Ident
+ | Elmb [FArg] Exp
   deriving (Eq,Ord,Show)
 
 data Constraint =

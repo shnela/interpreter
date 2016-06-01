@@ -123,20 +123,43 @@ runStatments (s:t) state = do
     Return _ -> Ok new_state
     NotRet -> runStatments t new_state
 
+-- helper function
+the_same_type a1 a2 =
+  case (a1, a2) of
+    (FArgument t1 _, FArgument t2 _) -> True
+    (FArgumentAssing t1 _ _, FArgumentAssing t2 _ _) -> True
+    (FArgumentFunc t1 _ _, FArgumentFunc t2 _ _) -> True
+    (FArgumentRef t1 _, FArgumentRef t2 _) -> True
+    otherwise -> False
+
+-- helper function
+correct_lmb_args d_args a_args =
+  length d_args == length a_args
+    && (all (\(a1, a2) -> the_same_type a1 a2) $ zip d_args a_args)
+
 -- update state with funciton arguments
 enrich:: State -> Ident -> [(FArg, IParam)] -> Err State
 enrich state id [] = Ok state
-enrich state id ((arg, InvokeParamater param):rest) = do
-   new_state <- case arg of
-     FArgument t i ->  do
-      (state, cons) <- evalExpression param state;
+enrich state id ((arg, param):rest) = do
+   new_state <- case (arg, param) of
+     (FArgument t i, InvokeParamater par) ->  do
+      (state, cons) <- evalExpression par state;
       declare state t i cons
---     FArgumentFun t i args -> do
---      declareF state t i args
-     FArgumentRef t i -> 
-       case param of
+     (FArgumentRef t i, InvokeParamater par) -> 
+       case par of
          Evar param_id -> refer state t i t param_id
          otherwise -> Bad "only var or value in funciton invoke";
+     (FArgument t _, _) -> Bad $ "Variable of type " ++ (show t) ++ " expected"
+     (FArgumentFunc t i args, InvokeParamater (Evar (Ident f_arg_name))) -> do
+        (typ, id, fargs, blk, f_st) <- getFun state (Ident f_arg_name);
+        declareF state t i args blk
+     (FArgumentFunc t i args, InvokeParamater (Elmb fargs exp)) ->
+        if correct_lmb_args args fargs then
+          declareF state t i fargs (Block [] [ReturnStmt exp])
+--          Bad $ (show $ length args) ++ " " ++ (show $ length fargs)
+          else
+            Bad $ "Bad lambda argument."
+     (FArgumentFunc t _ _, _) -> Bad $ "Function returning " ++ (show t) ++ " expected."
    enrich new_state id rest
 
 --expresions

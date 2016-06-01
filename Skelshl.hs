@@ -74,6 +74,8 @@ transExp x = case x of
   Einvok id iparams  -> failure x
   Evar id  -> failure x
   Econst constraint  -> failure x
+  Ewww id  -> failure x
+  Elmb fargs exp  -> failure x
 
 
 transConstraint :: Constraint -> Result

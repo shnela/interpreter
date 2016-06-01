@@ -153,6 +153,8 @@ instance Print Exp where
    Einvok id iparams -> prPrec i 5 (concatD [prt 0 id , doc (showString "(") , prt 0 iparams , doc (showString ")")])
    Evar id -> prPrec i 5 (concatD [prt 0 id])
    Econst constraint -> prPrec i 5 (concatD [prt 0 constraint])
+   Ewww id -> prPrec i 5 (concatD [prt 0 id , doc (showString "!")])
+   Elmb fargs exp -> prPrec i 5 (concatD [doc (showString "LAMBDA") , prt 0 fargs , doc (showString ":") , prt 0 exp])
 
 
 instance Print Constraint where

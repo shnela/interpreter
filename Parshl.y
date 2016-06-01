@@ -34,42 +34,45 @@ import ErrM
 %tokentype { Token }
 
 %token 
- '!=' { PT _ (TS _ 1) }
- '(' { PT _ (TS _ 2) }
- ')' { PT _ (TS _ 3) }
- '*' { PT _ (TS _ 4) }
- '+' { PT _ (TS _ 5) }
- '++' { PT _ (TS _ 6) }
- ',' { PT _ (TS _ 7) }
- '-' { PT _ (TS _ 8) }
- '--' { PT _ (TS _ 9) }
- '/' { PT _ (TS _ 10) }
- ';' { PT _ (TS _ 11) }
- '<' { PT _ (TS _ 12) }
- '<=' { PT _ (TS _ 13) }
- '=' { PT _ (TS _ 14) }
- '==' { PT _ (TS _ 15) }
- '>' { PT _ (TS _ 16) }
- '>=' { PT _ (TS _ 17) }
- 'Boolean' { PT _ (TS _ 18) }
- 'CYA' { PT _ (TS _ 19) }
- 'DO' { PT _ (TS _ 20) }
- 'DONE' { PT _ (TS _ 21) }
- 'ELSE' { PT _ (TS _ 22) }
- 'FI' { PT _ (TS _ 23) }
- 'FOR' { PT _ (TS _ 24) }
- 'False' { PT _ (TS _ 25) }
- 'IF' { PT _ (TS _ 26) }
- 'IN' { PT _ (TS _ 27) }
- 'Integer' { PT _ (TS _ 28) }
- 'PRINT' { PT _ (TS _ 29) }
- 'REF' { PT _ (TS _ 30) }
- 'RETURN' { PT _ (TS _ 31) }
- 'RETURNED' { PT _ (TS _ 32) }
- 'SOLUTION' { PT _ (TS _ 33) }
- 'String' { PT _ (TS _ 34) }
- 'THEN' { PT _ (TS _ 35) }
- 'True' { PT _ (TS _ 36) }
+ '!' { PT _ (TS _ 1) }
+ '!=' { PT _ (TS _ 2) }
+ '(' { PT _ (TS _ 3) }
+ ')' { PT _ (TS _ 4) }
+ '*' { PT _ (TS _ 5) }
+ '+' { PT _ (TS _ 6) }
+ '++' { PT _ (TS _ 7) }
+ ',' { PT _ (TS _ 8) }
+ '-' { PT _ (TS _ 9) }
+ '--' { PT _ (TS _ 10) }
+ '/' { PT _ (TS _ 11) }
+ ':' { PT _ (TS _ 12) }
+ ';' { PT _ (TS _ 13) }
+ '<' { PT _ (TS _ 14) }
+ '<=' { PT _ (TS _ 15) }
+ '=' { PT _ (TS _ 16) }
+ '==' { PT _ (TS _ 17) }
+ '>' { PT _ (TS _ 18) }
+ '>=' { PT _ (TS _ 19) }
+ 'Boolean' { PT _ (TS _ 20) }
+ 'CYA' { PT _ (TS _ 21) }
+ 'DO' { PT _ (TS _ 22) }
+ 'DONE' { PT _ (TS _ 23) }
+ 'ELSE' { PT _ (TS _ 24) }
+ 'FI' { PT _ (TS _ 25) }
+ 'FOR' { PT _ (TS _ 26) }
+ 'False' { PT _ (TS _ 27) }
+ 'IF' { PT _ (TS _ 28) }
+ 'IN' { PT _ (TS _ 29) }
+ 'Integer' { PT _ (TS _ 30) }
+ 'LAMBDA' { PT _ (TS _ 31) }
+ 'PRINT' { PT _ (TS _ 32) }
+ 'REF' { PT _ (TS _ 33) }
+ 'RETURN' { PT _ (TS _ 34) }
+ 'RETURNED' { PT _ (TS _ 35) }
+ 'SOLUTION' { PT _ (TS _ 36) }
+ 'String' { PT _ (TS _ 37) }
+ 'THEN' { PT _ (TS _ 38) }
+ 'True' { PT _ (TS _ 39) }
 
 L_ident  { PT _ (TV $$) }
 L_integ  { PT _ (TI $$) }
@@ -168,6 +171,8 @@ Exp5 : Ident '++' { Einc $1 }
   | Ident '(' ListIParam ')' { Einvok $1 $3 }
   | Ident { Evar $1 }
   | Constraint { Econst $1 }
+  | Ident '!' { Ewww $1 }
+  | 'LAMBDA' ListFArg ':' Exp { Elmb $2 $4 }
   | Exp6 { $1 }
 
 

@@ -6,11 +6,11 @@ SOLUTION
     RETURN var;
   RETURNED
 
-  Integer fun_arg(Integer var, Integer a(Integer v))
+  /* lambda with no argument demanded */
+  Integer fun_arg(Integer var, Integer a())
   DO
     PRINT a(var);
   RETURNED
 
-  fun_arg(1, test);
   fun_arg(2, LAMBDA Integer a: 2 * a);
 CYA
