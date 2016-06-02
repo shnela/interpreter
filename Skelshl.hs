@@ -33,6 +33,7 @@ transStm x = case x of
   PrintStmt exp  -> failure x
   ExpStmt exp  -> failure x
   Assign id exp  -> failure x
+  AssignArr id n exp  -> failure x
 
 
 transDec :: Dec -> Result
@@ -40,6 +41,7 @@ transDec x = case x of
   Declaration typ id  -> failure x
   DeclarationAssing typ id exp  -> failure x
   DeclarationFunc typ id fargs blk  -> failure x
+  DeclarationArray typ id n  -> failure x
 
 
 transFArg :: FArg -> Result
@@ -48,6 +50,7 @@ transFArg x = case x of
   FArgumentAssing typ id exp  -> failure x
   FArgumentFunc typ id fargs  -> failure x
   FArgumentRef typ id  -> failure x
+  FArgumentArr typ id  -> failure x
 
 
 transTyp :: Typ -> Result
@@ -74,8 +77,8 @@ transExp x = case x of
   Einvok id iparams  -> failure x
   Evar id  -> failure x
   Econst constraint  -> failure x
-  Ewww id  -> failure x
   Elmb fargs exp  -> failure x
+  Earr id n  -> failure x
 
 
 transConstraint :: Constraint -> Result

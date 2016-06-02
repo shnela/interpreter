@@ -38,11 +38,12 @@ The reserved words used in shl are the following:
   | ``SOLUTION`` | ``String`` | ``THEN`` | ``True``
 
 The symbols used in shl are the following:
-  | ; | = | ( | )
-  | , | == | != | <
-  | > | <= | >= | +
-  | - | * | / | ++
-  | -- | ! | : | 
+  | ; | = | [ | ]
+  | ( | ) | [] | ,
+  | == | != | < | >
+  | <= | >= | + | -
+  | * | / | ++ | --
+  | : |  |  | 
 
 ===Comments===
 Single-line comments begin with //.Multiple-line comments are  enclosed with /* and */.
@@ -62,15 +63,18 @@ All other symbols are terminals.
   |  |  **|**  | ``PRINT`` //Exp// ``;`` 
   |  |  **|**  | //Exp// ``;`` 
   |  |  **|**  | //Ident// ``=`` //Exp// ``;`` 
+  |  |  **|**  | //Ident// ``[`` //Integer// ``]`` ``=`` //Exp// ``;`` 
   | //[Stm]// | -> | **eps**
   |  |  **|**  | //Stm// //[Stm]// 
   | //Dec// | -> | //Typ// //Ident// ``;`` 
   |  |  **|**  | //Typ// //Ident// ``=`` //Exp// ``;`` 
   |  |  **|**  | //Typ// //Ident// ``(`` //[FArg]// ``)`` ``DO`` //Blk// ``RETURNED`` 
+  |  |  **|**  | //Typ// //Ident// ``[`` //Integer// ``]`` ``;`` 
   | //FArg// | -> | //Typ// //Ident// 
   |  |  **|**  | //Typ// //Ident// ``=`` //Exp// 
   |  |  **|**  | //Typ// //Ident// ``(`` //[FArg]// ``)`` 
   |  |  **|**  | ``REF`` //Typ// //Ident// 
+  |  |  **|**  | //Typ// //Ident// ``[]`` 
   | //[FArg]// | -> | **eps**
   |  |  **|**  | //FArg// 
   |  |  **|**  | //FArg// ``,`` //[FArg]// 
@@ -98,8 +102,8 @@ All other symbols are terminals.
   |  |  **|**  | //Ident// ``(`` //[IParam]// ``)`` 
   |  |  **|**  | //Ident// 
   |  |  **|**  | //Constraint// 
-  |  |  **|**  | //Ident// ``!`` 
   |  |  **|**  | ``LAMBDA`` //[FArg]// ``:`` //Exp// 
+  |  |  **|**  | //Ident// ``[`` //Integer// ``]`` 
   |  |  **|**  | //Exp6// 
   | //Exp1// | -> | //Exp2// 
   | //Exp6// | -> | ``(`` //Exp// ``)`` 

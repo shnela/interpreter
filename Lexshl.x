@@ -18,7 +18,7 @@ $i = [$l $d _ ']          -- identifier character
 $u = [\0-\255]          -- universal: any character
 
 @rsyms =    -- symbols and non-identifier-like reserved words
-   \; | \= | \( | \) | \, | \= \= | \! \= | \< | \> | \< \= | \> \= | \+ | \- | \* | \/ | \+ \+ | \- \- | \! | \:
+   \; | \= | \[ | \] | \( | \) | \[ \] | \, | \= \= | \! \= | \< | \> | \< \= | \> \= | \+ | \- | \* | \/ | \+ \+ | \- \- | \:
 
 :-
 "//" [.]* ; -- Toss single line comments
@@ -81,7 +81,7 @@ eitherResIdent tv s = treeFind resWords
                               | s > a  = treeFind right
                               | s == a = t
 
-resWords = b "Boolean" 20 (b "--" 10 (b "*" 5 (b "(" 3 (b "!=" 2 (b "!" 1 N N) N) (b ")" 4 N N)) (b "," 8 (b "++" 7 (b "+" 6 N N) N) (b "-" 9 N N))) (b "<=" 15 (b ";" 13 (b ":" 12 (b "/" 11 N N) N) (b "<" 14 N N)) (b ">" 18 (b "==" 17 (b "=" 16 N N) N) (b ">=" 19 N N)))) (b "Integer" 30 (b "FI" 25 (b "DONE" 23 (b "DO" 22 (b "CYA" 21 N N) N) (b "ELSE" 24 N N)) (b "IF" 28 (b "False" 27 (b "FOR" 26 N N) N) (b "IN" 29 N N))) (b "RETURNED" 35 (b "REF" 33 (b "PRINT" 32 (b "LAMBDA" 31 N N) N) (b "RETURN" 34 N N)) (b "THEN" 38 (b "String" 37 (b "SOLUTION" 36 N N) N) (b "True" 39 N N))))
+resWords = b "DO" 21 (b ":" 11 (b "++" 6 (b ")" 3 (b "(" 2 (b "!=" 1 N N) N) (b "+" 5 (b "*" 4 N N) N)) (b "--" 9 (b "-" 8 (b "," 7 N N) N) (b "/" 10 N N))) (b "==" 16 (b "<=" 14 (b "<" 13 (b ";" 12 N N) N) (b "=" 15 N N)) (b "Boolean" 19 (b ">=" 18 (b ">" 17 N N) N) (b "CYA" 20 N N)))) (b "REF" 32 (b "IF" 27 (b "FI" 24 (b "ELSE" 23 (b "DONE" 22 N N) N) (b "False" 26 (b "FOR" 25 N N) N)) (b "LAMBDA" 30 (b "Integer" 29 (b "IN" 28 N N) N) (b "PRINT" 31 N N))) (b "THEN" 37 (b "SOLUTION" 35 (b "RETURNED" 34 (b "RETURN" 33 N N) N) (b "String" 36 N N)) (b "[]" 40 (b "[" 39 (b "True" 38 N N) N) (b "]" 41 N N))))
    where b s n = let bs = id s
                   in B bs (TS bs n)
 

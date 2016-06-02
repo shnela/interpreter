@@ -34,45 +34,47 @@ import ErrM
 %tokentype { Token }
 
 %token 
- '!' { PT _ (TS _ 1) }
- '!=' { PT _ (TS _ 2) }
- '(' { PT _ (TS _ 3) }
- ')' { PT _ (TS _ 4) }
- '*' { PT _ (TS _ 5) }
- '+' { PT _ (TS _ 6) }
- '++' { PT _ (TS _ 7) }
- ',' { PT _ (TS _ 8) }
- '-' { PT _ (TS _ 9) }
- '--' { PT _ (TS _ 10) }
- '/' { PT _ (TS _ 11) }
- ':' { PT _ (TS _ 12) }
- ';' { PT _ (TS _ 13) }
- '<' { PT _ (TS _ 14) }
- '<=' { PT _ (TS _ 15) }
- '=' { PT _ (TS _ 16) }
- '==' { PT _ (TS _ 17) }
- '>' { PT _ (TS _ 18) }
- '>=' { PT _ (TS _ 19) }
- 'Boolean' { PT _ (TS _ 20) }
- 'CYA' { PT _ (TS _ 21) }
- 'DO' { PT _ (TS _ 22) }
- 'DONE' { PT _ (TS _ 23) }
- 'ELSE' { PT _ (TS _ 24) }
- 'FI' { PT _ (TS _ 25) }
- 'FOR' { PT _ (TS _ 26) }
- 'False' { PT _ (TS _ 27) }
- 'IF' { PT _ (TS _ 28) }
- 'IN' { PT _ (TS _ 29) }
- 'Integer' { PT _ (TS _ 30) }
- 'LAMBDA' { PT _ (TS _ 31) }
- 'PRINT' { PT _ (TS _ 32) }
- 'REF' { PT _ (TS _ 33) }
- 'RETURN' { PT _ (TS _ 34) }
- 'RETURNED' { PT _ (TS _ 35) }
- 'SOLUTION' { PT _ (TS _ 36) }
- 'String' { PT _ (TS _ 37) }
- 'THEN' { PT _ (TS _ 38) }
- 'True' { PT _ (TS _ 39) }
+ '!=' { PT _ (TS _ 1) }
+ '(' { PT _ (TS _ 2) }
+ ')' { PT _ (TS _ 3) }
+ '*' { PT _ (TS _ 4) }
+ '+' { PT _ (TS _ 5) }
+ '++' { PT _ (TS _ 6) }
+ ',' { PT _ (TS _ 7) }
+ '-' { PT _ (TS _ 8) }
+ '--' { PT _ (TS _ 9) }
+ '/' { PT _ (TS _ 10) }
+ ':' { PT _ (TS _ 11) }
+ ';' { PT _ (TS _ 12) }
+ '<' { PT _ (TS _ 13) }
+ '<=' { PT _ (TS _ 14) }
+ '=' { PT _ (TS _ 15) }
+ '==' { PT _ (TS _ 16) }
+ '>' { PT _ (TS _ 17) }
+ '>=' { PT _ (TS _ 18) }
+ 'Boolean' { PT _ (TS _ 19) }
+ 'CYA' { PT _ (TS _ 20) }
+ 'DO' { PT _ (TS _ 21) }
+ 'DONE' { PT _ (TS _ 22) }
+ 'ELSE' { PT _ (TS _ 23) }
+ 'FI' { PT _ (TS _ 24) }
+ 'FOR' { PT _ (TS _ 25) }
+ 'False' { PT _ (TS _ 26) }
+ 'IF' { PT _ (TS _ 27) }
+ 'IN' { PT _ (TS _ 28) }
+ 'Integer' { PT _ (TS _ 29) }
+ 'LAMBDA' { PT _ (TS _ 30) }
+ 'PRINT' { PT _ (TS _ 31) }
+ 'REF' { PT _ (TS _ 32) }
+ 'RETURN' { PT _ (TS _ 33) }
+ 'RETURNED' { PT _ (TS _ 34) }
+ 'SOLUTION' { PT _ (TS _ 35) }
+ 'String' { PT _ (TS _ 36) }
+ 'THEN' { PT _ (TS _ 37) }
+ 'True' { PT _ (TS _ 38) }
+ '[' { PT _ (TS _ 39) }
+ '[]' { PT _ (TS _ 40) }
+ ']' { PT _ (TS _ 41) }
 
 L_ident  { PT _ (TV $$) }
 L_integ  { PT _ (TI $$) }
@@ -102,6 +104,7 @@ Stm : 'FOR' Ident 'IN' Exp 'DO' Blk 'DONE' { ForLoop $2 $4 $6 }
   | 'PRINT' Exp ';' { PrintStmt $2 }
   | Exp ';' { ExpStmt $1 }
   | Ident '=' Exp ';' { Assign $1 $3 }
+  | Ident '[' Integer ']' '=' Exp ';' { AssignArr $1 $3 $6 }
 
 
 ListStm :: { [Stm] }
@@ -113,6 +116,7 @@ Dec :: { Dec }
 Dec : Typ Ident ';' { Declaration $1 $2 } 
   | Typ Ident '=' Exp ';' { DeclarationAssing $1 $2 $4 }
   | Typ Ident '(' ListFArg ')' 'DO' Blk 'RETURNED' { DeclarationFunc $1 $2 $4 $7 }
+  | Typ Ident '[' Integer ']' ';' { DeclarationArray $1 $2 $4 }
 
 
 FArg :: { FArg }
@@ -120,6 +124,7 @@ FArg : Typ Ident { FArgument $1 $2 }
   | Typ Ident '=' Exp { FArgumentAssing $1 $2 $4 }
   | Typ Ident '(' ListFArg ')' { FArgumentFunc $1 $2 $4 }
   | 'REF' Typ Ident { FArgumentRef $2 $3 }
+  | Typ Ident '[]' { FArgumentArr $1 $2 }
 
 
 ListFArg :: { [FArg] }
@@ -171,8 +176,8 @@ Exp5 : Ident '++' { Einc $1 }
   | Ident '(' ListIParam ')' { Einvok $1 $3 }
   | Ident { Evar $1 }
   | Constraint { Econst $1 }
-  | Ident '!' { Ewww $1 }
   | 'LAMBDA' ListFArg ':' Exp { Elmb $2 $4 }
+  | Ident '[' Integer ']' { Earr $1 $3 }
   | Exp6 { $1 }
 
 

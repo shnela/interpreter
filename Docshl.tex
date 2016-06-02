@@ -57,13 +57,13 @@ The reserved words used in shl are the following: \\
 The symbols used in shl are the following: \\
 
 \begin{tabular}{lll}
-{\symb{;}} &{\symb{{$=$}}} &{\symb{(}} \\
-{\symb{)}} &{\symb{,}} &{\symb{{$=$}{$=$}}} \\
+{\symb{;}} &{\symb{{$=$}}} &{\symb{[}} \\
+{\symb{]}} &{\symb{(}} &{\symb{)}} \\
+{\symb{[]}} &{\symb{,}} &{\symb{{$=$}{$=$}}} \\
 {\symb{!{$=$}}} &{\symb{{$<$}}} &{\symb{{$>$}}} \\
 {\symb{{$<$}{$=$}}} &{\symb{{$>$}{$=$}}} &{\symb{{$+$}}} \\
 {\symb{{$-$}}} &{\symb{*}} &{\symb{/}} \\
-{\symb{{$+$}{$+$}}} &{\symb{{$-$}{$-$}}} &{\symb{!}} \\
-{\symb{:}} & & \\
+{\symb{{$+$}{$+$}}} &{\symb{{$-$}{$-$}}} &{\symb{:}} \\
 \end{tabular}\\
 
 \subsection*{Comments}
@@ -91,6 +91,7 @@ All other symbols are terminals.\\
  & {\delimit}  &{\terminal{PRINT}} {\nonterminal{Exp}} {\terminal{;}}  \\
  & {\delimit}  &{\nonterminal{Exp}} {\terminal{;}}  \\
  & {\delimit}  &{\nonterminal{Ident}} {\terminal{{$=$}}} {\nonterminal{Exp}} {\terminal{;}}  \\
+ & {\delimit}  &{\nonterminal{Ident}} {\terminal{[}} {\nonterminal{Integer}} {\terminal{]}} {\terminal{{$=$}}} {\nonterminal{Exp}} {\terminal{;}}  \\
 \end{tabular}\\
 
 \begin{tabular}{lll}
@@ -102,6 +103,7 @@ All other symbols are terminals.\\
 {\nonterminal{Dec}} & {\arrow}  &{\nonterminal{Typ}} {\nonterminal{Ident}} {\terminal{;}}  \\
  & {\delimit}  &{\nonterminal{Typ}} {\nonterminal{Ident}} {\terminal{{$=$}}} {\nonterminal{Exp}} {\terminal{;}}  \\
  & {\delimit}  &{\nonterminal{Typ}} {\nonterminal{Ident}} {\terminal{(}} {\nonterminal{ListFArg}} {\terminal{)}} {\terminal{DO}} {\nonterminal{Blk}} {\terminal{RETURNED}}  \\
+ & {\delimit}  &{\nonterminal{Typ}} {\nonterminal{Ident}} {\terminal{[}} {\nonterminal{Integer}} {\terminal{]}} {\terminal{;}}  \\
 \end{tabular}\\
 
 \begin{tabular}{lll}
@@ -109,6 +111,7 @@ All other symbols are terminals.\\
  & {\delimit}  &{\nonterminal{Typ}} {\nonterminal{Ident}} {\terminal{{$=$}}} {\nonterminal{Exp}}  \\
  & {\delimit}  &{\nonterminal{Typ}} {\nonterminal{Ident}} {\terminal{(}} {\nonterminal{ListFArg}} {\terminal{)}}  \\
  & {\delimit}  &{\terminal{REF}} {\nonterminal{Typ}} {\nonterminal{Ident}}  \\
+ & {\delimit}  &{\nonterminal{Typ}} {\nonterminal{Ident}} {\terminal{[]}}  \\
 \end{tabular}\\
 
 \begin{tabular}{lll}
@@ -160,8 +163,8 @@ All other symbols are terminals.\\
  & {\delimit}  &{\nonterminal{Ident}} {\terminal{(}} {\nonterminal{ListIParam}} {\terminal{)}}  \\
  & {\delimit}  &{\nonterminal{Ident}}  \\
  & {\delimit}  &{\nonterminal{Constraint}}  \\
- & {\delimit}  &{\nonterminal{Ident}} {\terminal{!}}  \\
  & {\delimit}  &{\terminal{LAMBDA}} {\nonterminal{ListFArg}} {\terminal{:}} {\nonterminal{Exp}}  \\
+ & {\delimit}  &{\nonterminal{Ident}} {\terminal{[}} {\nonterminal{Integer}} {\terminal{]}}  \\
  & {\delimit}  &{\nonterminal{Exp6}}  \\
 \end{tabular}\\
 

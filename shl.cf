@@ -14,6 +14,7 @@ ReturnStmt.  Stm ::= "RETURN" Exp ";" ;
 PrintStmt.   Stm ::= "PRINT" Exp ";" ;
 ExpStmt.     Stm ::= Exp ";" ;
 Assign.      Stm ::= Ident "=" Exp ";" ;
+AssignArr.   Stm ::= Ident "[" Integer "]" "=" Exp ";" ;
 
 [].      [Stm] ::= ;
 (:).     [Stm] ::= Stm [Stm] ;
@@ -22,11 +23,13 @@ Assign.      Stm ::= Ident "=" Exp ";" ;
 Declaration.        Dec ::= Typ Ident ";" ;
 DeclarationAssing.  Dec ::= Typ Ident "=" Exp ";" ;
 DeclarationFunc.    Dec ::= Typ Ident "(" [FArg] ")" "DO" Blk "RETURNED" ;
+DeclarationArray.   Dec ::= Typ Ident "[" Integer "]" ";" ;
 
 FArgument.        FArg ::= Typ Ident ;
 FArgumentAssing.  FArg ::= Typ Ident "=" Exp ;
 FArgumentFunc.    FArg ::= Typ Ident "(" [FArg] ")";
 FArgumentRef.     FArg ::= "REF" Typ Ident ;
+FArgumentArr.     FArg ::= Typ Ident "[]";
 
 [].       [FArg] ::= ;
 (:[]).    [FArg] ::= FArg ;
@@ -56,8 +59,8 @@ Edec.        Exp5 ::= Ident "--" ;
 Einvok.      Exp5 ::= Ident "(" [IParam] ")" ;
 Evar.        Exp5 ::= Ident ;
 Econst.      Exp5 ::= Constraint ;
-Ewww.          Exp5 ::= Ident "!" ;
 Elmb.        Exp5 ::= "LAMBDA" [FArg] ":" Exp ;
+Earr.        Exp5 ::=  Ident "[" Integer "]" ;
 --
 coercions Exp 6 ;
 --

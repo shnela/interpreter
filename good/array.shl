@@ -1,0 +1,11 @@
+SOLUTION
+  Integer fun(Integer a[])
+  DO
+    a[2] = 2;
+    PRINT a[2];
+  RETURNED
+
+  Integer aint[10];
+
+  fun(aint);
+CYA

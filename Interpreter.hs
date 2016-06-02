@@ -27,7 +27,7 @@ interpretBlock b st = case b of
 --declarations
 loadDeclarations :: [Dec] -> State -> Err State
 loadDeclarations [] st = Ok st
-loadDeclarations (d:decs) st@(St (Vst vst, Rst rst, Fst fst, Bst bst, stc, _, clvl, flvl, ilvl))  = case d of
+loadDeclarations (d:decs) st@(St (Vst vst, Rst rst, Ast ast, Fst fst, Bst bst, stc, _, clvl, flvl, ilvl))  = case d of
   Declaration t id -> do {
 --    tmp <- toBuffer st $ Eint (100 + clvl);
 --    new_state <- (declare tmp t id $ defaultValue t);
@@ -45,6 +45,10 @@ loadDeclarations (d:decs) st@(St (Vst vst, Rst rst, Fst fst, Bst bst, stc, _, cl
     new_state <- (declareF st t id args blk);
     loadDeclarations decs new_state
   }
+  DeclarationArray t id siz -> do {
+     new_state <- (declareA st t id siz $ defaultValue t);
+    loadDeclarations decs new_state
+  }
 
 -- for helper
 runFor id end_val blk state = do
@@ -59,7 +63,7 @@ runFor id end_val blk state = do
 runStatments :: [Stm] -> State -> Err State
 runStatments [] state = Ok state
 runStatments (s:t) state = do
-  new_state@(St (_, _, _, _, _, ret, _, _, _)) <- case s of
+  new_state@(St (_, _, _, _, _, _, ret, _, _, _)) <- case s of
     ForLoop id exp blk -> do {
         (state, end_cons) <- evalExpression exp state;
         case end_cons of
@@ -95,10 +99,11 @@ runStatments (s:t) state = do
     }
 
     ReturnStmt exp -> do {
-      (state@(St (Vst vst, Rst rst, Fst fst, Bst bst, stc, _, clvl, flvl, ilvl)), cons) <- evalExpression exp state;
+      (state@(St (Vst vst, Rst rst, Ast ast, Fst fst, Bst bst, stc, _, clvl, flvl, ilvl)), cons) <- evalExpression exp state;
       Ok $ St(
         Vst vst,
         Rst rst,
+        Ast ast,
         Fst fst,
         Bst bst,
         stc,
@@ -116,6 +121,12 @@ runStatments (s:t) state = do
     Assign v e -> do {
       (state, val) <- evalExpression e state;
       new_state <- update state v val;
+      Ok new_state
+    }
+    
+    AssignArr v ix e -> do {
+      (state, val) <- evalExpression e state;
+      new_state <- updateArr state v ix val;
       Ok new_state
     }
 
@@ -149,22 +160,24 @@ enrich state id ((arg, param):rest) = do
        case par of
          Evar param_id -> refer state t i t param_id
          otherwise -> Bad "only var or value in funciton invoke";
-     (FArgument t _, _) -> Bad $ "Variable of type " ++ (show t) ++ " expected"
+--     (FArgument t _, _) -> Bad $ "Variable of type " ++ (show t) ++ " expected"
      (FArgumentFunc t i args, InvokeParamater (Evar (Ident f_arg_name))) -> do
         (typ, id, fargs, blk, f_st) <- getFun state (Ident f_arg_name);
         declareF state t i args blk
      (FArgumentFunc t i args, InvokeParamater (Elmb fargs exp)) ->
         if correct_lmb_args args fargs then
           declareF state t i fargs (Block [] [ReturnStmt exp])
---          Bad $ (show $ length args) ++ " " ++ (show $ length fargs)
           else
             Bad $ "Bad lambda argument."
      (FArgumentFunc t _ _, _) -> Bad $ "Function returning " ++ (show t) ++ " expected."
+     (FArgumentArr t i, InvokeParamater (Evar id)) ->
+         refer state t i t id
+     (FArgumentArr t i, _) -> Bad $ "Array of type " ++ (show t) ++ " expected."
    enrich new_state id rest
 
 --expresions
 evalExpression :: Exp -> State -> Err (State, Constraint)
-evalExpression e state@(St (Vst vst, Rst rst, Fst fst, Bst bst, stc, _, clvl, flvl, ilvl)) =
+evalExpression e state@(St (Vst vst, Rst rst, Ast ast, Fst fst, Bst bst, stc, _, clvl, flvl, ilvl)) =
   let eval e1 e2 f = do {
     (state, x) <- evalExpression e1 state;
     (state, y) <- evalExpression e2 state;
@@ -218,6 +231,10 @@ evalExpression e state@(St (Vst vst, Rst rst, Fst fst, Bst bst, stc, _, clvl, fl
 --      Ebool b -> if b then Ok $ Ebool Constraint_True else Ok $ Ebool Constraint_False
 --      Estring str -> Ok $Estring str
 --      otherwise -> Bad "lol patternmaching"
+  }
+  Earr id ix -> do {
+    val <- lookArr state id ix;
+    Ok (state, val)
   }
 
 evalConstraint2int :: Constraint -> Err Integer

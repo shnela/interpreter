@@ -20,12 +20,14 @@ data Stm =
  | PrintStmt Exp
  | ExpStmt Exp
  | Assign Ident Exp
+ | AssignArr Ident Integer Exp
   deriving (Eq,Ord,Show)
 
 data Dec =
    Declaration Typ Ident
  | DeclarationAssing Typ Ident Exp
  | DeclarationFunc Typ Ident [FArg] Blk
+ | DeclarationArray Typ Ident Integer
   deriving (Eq,Ord,Show)
 
 data FArg =
@@ -33,6 +35,7 @@ data FArg =
  | FArgumentAssing Typ Ident Exp
  | FArgumentFunc Typ Ident [FArg]
  | FArgumentRef Typ Ident
+ | FArgumentArr Typ Ident
   deriving (Eq,Ord,Show)
 
 data Typ =
@@ -57,8 +60,8 @@ data Exp =
  | Einvok Ident [IParam]
  | Evar Ident
  | Econst Constraint
- | Ewww Ident
  | Elmb [FArg] Exp
+ | Earr Ident Integer
   deriving (Eq,Ord,Show)
 
 data Constraint =

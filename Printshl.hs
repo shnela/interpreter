@@ -102,6 +102,7 @@ instance Print Stm where
    PrintStmt exp -> prPrec i 0 (concatD [doc (showString "PRINT") , prt 0 exp , doc (showString ";")])
    ExpStmt exp -> prPrec i 0 (concatD [prt 0 exp , doc (showString ";")])
    Assign id exp -> prPrec i 0 (concatD [prt 0 id , doc (showString "=") , prt 0 exp , doc (showString ";")])
+   AssignArr id n exp -> prPrec i 0 (concatD [prt 0 id , doc (showString "[") , prt 0 n , doc (showString "]") , doc (showString "=") , prt 0 exp , doc (showString ";")])
 
   prtList es = case es of
    [] -> (concatD [])
@@ -112,6 +113,7 @@ instance Print Dec where
    Declaration typ id -> prPrec i 0 (concatD [prt 0 typ , prt 0 id , doc (showString ";")])
    DeclarationAssing typ id exp -> prPrec i 0 (concatD [prt 0 typ , prt 0 id , doc (showString "=") , prt 0 exp , doc (showString ";")])
    DeclarationFunc typ id fargs blk -> prPrec i 0 (concatD [prt 0 typ , prt 0 id , doc (showString "(") , prt 0 fargs , doc (showString ")") , doc (showString "DO") , prt 0 blk , doc (showString "RETURNED")])
+   DeclarationArray typ id n -> prPrec i 0 (concatD [prt 0 typ , prt 0 id , doc (showString "[") , prt 0 n , doc (showString "]") , doc (showString ";")])
 
   prtList es = case es of
    [] -> (concatD [])
@@ -123,6 +125,7 @@ instance Print FArg where
    FArgumentAssing typ id exp -> prPrec i 0 (concatD [prt 0 typ , prt 0 id , doc (showString "=") , prt 0 exp])
    FArgumentFunc typ id fargs -> prPrec i 0 (concatD [prt 0 typ , prt 0 id , doc (showString "(") , prt 0 fargs , doc (showString ")")])
    FArgumentRef typ id -> prPrec i 0 (concatD [doc (showString "REF") , prt 0 typ , prt 0 id])
+   FArgumentArr typ id -> prPrec i 0 (concatD [prt 0 typ , prt 0 id , doc (showString "[]")])
 
   prtList es = case es of
    [] -> (concatD [])
@@ -153,8 +156,8 @@ instance Print Exp where
    Einvok id iparams -> prPrec i 5 (concatD [prt 0 id , doc (showString "(") , prt 0 iparams , doc (showString ")")])
    Evar id -> prPrec i 5 (concatD [prt 0 id])
    Econst constraint -> prPrec i 5 (concatD [prt 0 constraint])
-   Ewww id -> prPrec i 5 (concatD [prt 0 id , doc (showString "!")])
    Elmb fargs exp -> prPrec i 5 (concatD [doc (showString "LAMBDA") , prt 0 fargs , doc (showString ":") , prt 0 exp])
+   Earr id n -> prPrec i 5 (concatD [prt 0 id , doc (showString "[") , prt 0 n , doc (showString "]")])
 
 
 instance Print Constraint where
