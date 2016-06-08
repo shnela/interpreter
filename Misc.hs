@@ -134,16 +134,25 @@ declare state@(St (Vst vst, Rst rst, Ast ast, Fst fst, Bst bst, stc, _, clvl, fl
         }
 
 -- declare for references
+referH :: State -> Typ -> Ident -> Ident -> Err State
+referH state@(St (Vst vst, Rst rst, Ast ast, Fst fst, Bst bst, stc, _, clvl, flvl, ilvl)) typ id1 id2 =
+  if (any (\(_, i, _) -> id1 == i) rst) then Bad "Reference is declared in this scope"
+    else if any (\(t, i, _) -> id2 == i && (typ == t)) vst
+      then Bad "No such variable to map"
+      else Ok (
+        St(Vst vst, Rst ((typ, id1, id2):rst), Ast ast, Fst fst, Bst bst, stc,
+          NotRet, clvl, flvl, ilvl))
+
 refer :: State -> Typ -> Ident -> Typ -> Ident -> Err State
 refer state@(St (Vst vst, Rst rst, Ast ast, Fst fst, Bst bst, stc, _, clvl, flvl, ilvl)) typ1 id1 typ2 id2 =
   if typ1 /= typ2 then Bad "Type mismatch"
     else
-    if (any (\(_, i, _) -> id1 == i) rst) then Bad "Reference is declared in this scope"
-      else if any (\(t, i, _) -> id2 == i && (typ1 == t)) vst
-        then Bad "No such variable to map"
-        else Ok (
-          St(Vst vst, Rst ((typ1, id1, id2):rst), Ast ast, Fst fst, Bst bst, stc,
-            NotRet, clvl, flvl, ilvl))
+      case getRefTranslation state id2 ilvl of
+        Left (translated_id, _) -> referH state typ1 id1 translated_id
+        Right translated_id -> referH state typ1 id1 translated_id
+
+--         Left (translated_id, var_lvl) -> updateArrR state translated_id ix con var_lvl (clvl+99)
+--         Right translated_id -> updateArrR state translated_id ix con t_flvl t_ilvl
 
 declareF :: State -> Typ -> Ident -> [FArg] -> Blk -> Err State
 declareF state@(St (Vst vst, Rst rst, Ast ast, Fst fst, Bst bst, st, _, clvl, flvl, ilvl)) typ id args blk =
@@ -211,7 +220,7 @@ updateArrState id ix vst con =
 updateArrR :: State -> Ident -> Integer -> Constraint -> Integer -> Integer -> Err State
 updateArrR BottomState id ix con top_flvl top_ilvl =
   case getType con of
-  Ok t -> Bad $ "No such identifier: " ++ (show id) ++ " of type: " ++ (show t) ++ " to update."
+  Ok t -> Bad $ "No such identifier: " ++ (show id) ++ " of type: " ++ (show t) ++ " to update!"
   otherwise -> Bad "Unknown error during resolving variable type"
 updateArrR (St (Vst vst, Rst rst, Ast ast,Fst fst, Bst bst, stc, _, clvl, flvl, ilvl)) id ix con top_flvl top_ilvl =
   let { updateA el@(t, i, c, s)

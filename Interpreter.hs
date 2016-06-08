@@ -172,7 +172,6 @@ enrich state id ((arg, param):rest) = do
        case par of
          Evar param_id -> refer state t i t param_id
          otherwise -> Bad "only var or value in funciton invoke";
---     (FArgument t _, _) -> Bad $ "Variable of type " ++ (show t) ++ " expected"
      (FArgumentFunc t i args, InvokeParamater (Evar (Ident f_arg_name))) -> do
         (typ, id, fargs, blk, f_st) <- getFun state (Ident f_arg_name);
         declareF state t i args blk
@@ -183,7 +182,12 @@ enrich state id ((arg, param):rest) = do
             Bad $ "Bad lambda argument."
      (FArgumentFunc t _ _, _) -> Bad $ "Function returning " ++ (show t) ++ " expected."
      (FArgumentArr t i, InvokeParamater (Evar id)) ->
-         refer state t i t id
+--         do  {
+--           tmp <- toBuffer state $ (show i);
+--           tmp2 <- toBuffer tmp $ (show id);
+--           refer tmp2 t i t id
+--         }
+        refer state t i t id
      (FArgumentArr t i, _) -> Bad $ "Array of type " ++ (show t) ++ " expected."
    enrich new_state id rest
 

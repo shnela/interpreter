@@ -1,9 +1,4 @@
 SOLUTION
-  Integer fun(Integer a[])
-  DO
-    a[0] = 42;
-  RETURNED
-
   Integer silnia(Integer a[], Integer N)
   DO
     IF N == 0
@@ -15,7 +10,7 @@ SOLUTION
     FI
   RETURNED
 
-  Integer N = 4;
+  Integer N = 5;
   Integer aint[N];
 
   silnia(aint, N - 1);
