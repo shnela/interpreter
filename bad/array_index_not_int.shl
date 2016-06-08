@@ -1,0 +1,6 @@
+SOLUTION
+  Integer aint[4];
+  String i = "idx";
+  PRINT aint[i];
+  /* Index is not int */
+CYA

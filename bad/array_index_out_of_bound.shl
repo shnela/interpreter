@@ -1,0 +1,8 @@
+SOLUTION
+  Integer N = 4;
+  Integer aint[N];
+  /* off by one */
+  PRINT aint[N];
+  /* and here too */
+  aint[N] = N;
+CYA

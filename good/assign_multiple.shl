@@ -1,0 +1,9 @@
+SOLUTION
+  Integer a;
+  Integer b;
+
+  a, b = 1, a + 1;
+
+  PRINT a;
+  PRINT b;
+CYA

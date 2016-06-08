@@ -1,0 +1,10 @@
+SOLUTION
+  Integer i;
+  Boolean b;
+
+  i = True;
+  b = 42;
+
+  PRINT i;
+  PRINT b;
+CYA

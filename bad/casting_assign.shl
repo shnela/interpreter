@@ -1,0 +1,8 @@
+SOLUTION
+  Integer i;
+  String s;
+
+  i = "ale";
+  s = 42;
+
+CYA

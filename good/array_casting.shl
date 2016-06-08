@@ -1,0 +1,14 @@
+SOLUTION
+  Integer N = 3;
+  Boolean aint[N];
+
+  FOR i IN N
+  DO
+    aint[i] = i;
+  DONE
+
+  FOR i IN N
+  DO
+    PRINT aint[i];
+  DONE
+CYA

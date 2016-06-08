@@ -1,0 +1,14 @@
+SOLUTION
+  Integer N = 4;
+  String aint[N];
+
+  FOR i IN N
+  DO
+    aint[i] = i;
+  DONE
+
+  FOR i IN N
+  DO
+    PRINT aint[i];
+  DONE
+CYA

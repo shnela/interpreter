@@ -28,12 +28,22 @@ transStm :: Stm -> Result
 transStm x = case x of
   ForLoop id exp blk  -> failure x
   IfStmt exp blk  -> failure x
-  IfElseStmt exp blk0 blk  -> failure x
+  IfElseStmt exp blk1 blk2  -> failure x
   ReturnStmt exp  -> failure x
   PrintStmt exp  -> failure x
   ExpStmt exp  -> failure x
-  Assign id exp  -> failure x
-  AssignArr id n exp  -> failure x
+  AssignMultiple assms exps  -> failure x
+
+
+transAssM :: AssM -> Result
+transAssM x = case x of
+  AssignVar id  -> failure x
+  AssignArr id exp  -> failure x
+
+
+transAssE :: AssE -> Result
+transAssE x = case x of
+  AssignExp exp  -> failure x
 
 
 transDec :: Dec -> Result
@@ -41,7 +51,7 @@ transDec x = case x of
   Declaration typ id  -> failure x
   DeclarationAssing typ id exp  -> failure x
   DeclarationFunc typ id fargs blk  -> failure x
-  DeclarationArray typ id n  -> failure x
+  DeclarationArray typ id exp  -> failure x
 
 
 transFArg :: FArg -> Result
@@ -62,23 +72,23 @@ transTyp x = case x of
 
 transExp :: Exp -> Result
 transExp x = case x of
-  Eeq exp0 exp  -> failure x
-  Eneq exp0 exp  -> failure x
-  Elthen exp0 exp  -> failure x
-  Egrthen exp0 exp  -> failure x
-  Ele exp0 exp  -> failure x
-  Ege exp0 exp  -> failure x
-  Eplus exp0 exp  -> failure x
-  Eminus exp0 exp  -> failure x
-  Etimes exp0 exp  -> failure x
-  Ediv exp0 exp  -> failure x
+  Eeq exp1 exp2  -> failure x
+  Eneq exp1 exp2  -> failure x
+  Elthen exp1 exp2  -> failure x
+  Egrthen exp1 exp2  -> failure x
+  Ele exp1 exp2  -> failure x
+  Ege exp1 exp2  -> failure x
+  Eplus exp1 exp2  -> failure x
+  Eminus exp1 exp2  -> failure x
+  Etimes exp1 exp2  -> failure x
+  Ediv exp1 exp2  -> failure x
   Einc id  -> failure x
   Edec id  -> failure x
   Einvok id iparams  -> failure x
   Evar id  -> failure x
   Econst constraint  -> failure x
   Elmb fargs exp  -> failure x
-  Earr id n  -> failure x
+  Earr id exp  -> failure x
 
 
 transConstraint :: Constraint -> Result

@@ -45,8 +45,9 @@ loadDeclarations (d:decs) st@(St (Vst vst, Rst rst, Ast ast, Fst fst, Bst bst, s
     new_state <- (declareF st t id args blk);
     loadDeclarations decs new_state
   }
-  DeclarationArray t id siz -> do {
-     new_state <- (declareA st t id siz $ defaultValue t);
+  DeclarationArray t id siz_exp -> do {
+    siz <- evalExpressionArrayIdx siz_exp st;
+    new_state <- (declareA st t id siz $ defaultValue t);
     loadDeclarations decs new_state
   }
 
@@ -76,7 +77,7 @@ runStatments (s:t) state = do
 
     IfStmt exp blk -> do {
       (state, c) <- evalExpression exp state;
-      condition <- convert_constraint_to_bool c;
+      condition <- convert_constraint_to_haskell_bool c;
       new_state <-
         if condition then interpretBlock blk state
           else Ok state;
@@ -85,18 +86,20 @@ runStatments (s:t) state = do
 
     IfElseStmt exp blkt blke -> do {
       (state, c) <- evalExpression exp state;
-      condition <- convert_constraint_to_bool c;
+      condition <- convert_constraint_to_haskell_bool c;
       new_state <-
         if condition then interpretBlock blkt state
           else interpretBlock blke state;
       Ok new_state
     }
 
-    PrintStmt exp -> do {
-      (state, e) <- evalExpression exp state;
-      new_state <- toBuffer state e;
-      Ok new_state
-    }
+    PrintStmt exp -> 
+      case exp of
+        otherwise -> do {
+          (state, e) <- evalExpression exp state;
+          new_state <- toBuffer state (show e);
+          Ok new_state
+        }
 
     ReturnStmt exp -> do {
       (state@(St (Vst vst, Rst rst, Ast ast, Fst fst, Bst bst, stc, _, clvl, flvl, ilvl)), cons) <- evalExpression exp state;
@@ -118,17 +121,26 @@ runStatments (s:t) state = do
       Ok state
     }
     
-    Assign v e -> do {
-      (state, val) <- evalExpression e state;
-      new_state <- update state v val;
-      Ok new_state
-    }
+--     Assign v e -> do {
+--       (state, val) <- evalExpression e state;
+--       new_state <- update state v val;
+--       Ok new_state
+--     }
+--     
+--     AssignArr v ix_exp e -> do {
+--       ix <- evalExpressionArrayIdx ix_exp state;
+--       (state, val) <- evalExpression e state;
+--       new_state <- updateArr state v ix val;
+--       Ok new_state
+--     }
     
-    AssignArr v ix e -> do {
-      (state, val) <- evalExpression e state;
-      new_state <- updateArr state v ix val;
-      Ok new_state
-    }
+    AssignMultiple vars exps ->
+      if length vars /= length exps
+        then Bad "Number of variables to assign and values to assign should be equal."
+        else do {
+          new_state <- assignValues vars exps state;
+          Ok new_state
+        }
 
   case ret of
     Return _ -> Ok new_state
@@ -174,6 +186,33 @@ enrich state id ((arg, param):rest) = do
          refer state t i t id
      (FArgumentArr t i, _) -> Bad $ "Array of type " ++ (show t) ++ " expected."
    enrich new_state id rest
+
+evalExpressionArrayIdx :: Exp -> State -> Err Integer
+evalExpressionArrayIdx idx_exp state = do
+  (_, idx_constraint) <- evalExpression idx_exp state;
+  case idx_constraint of
+    Eint idx -> Ok idx
+    otherwise -> Bad "Array indexes should be integers"
+
+-- helper for multi assign
+assignValues :: [AssM] -> [Exp] ->  State -> Err State
+assignValues [] [] state = Ok state
+assignValues (v:vars) (e:exps) state = do
+  new_state <- assignOne v e state;
+  assignValues vars exps new_state
+
+assignOne :: AssM -> Exp -> State -> Err State
+assignOne (AssignVar v) expression state = do {
+  (state, val) <- evalExpression expression state;
+  new_state <- update state v val;
+  Ok new_state
+}
+assignOne (AssignArr v ix_e) exp state = do {
+  ix <- evalExpressionArrayIdx ix_e state;
+  (state, val) <- evalExpression exp state;
+  new_state <- updateArr state v ix val;
+  Ok new_state
+}
 
 --expresions
 evalExpression :: Exp -> State -> Err (State, Constraint)
@@ -232,20 +271,14 @@ evalExpression e state@(St (Vst vst, Rst rst, Ast ast, Fst fst, Bst bst, stc, _,
 --      Estring str -> Ok $Estring str
 --      otherwise -> Bad "lol patternmaching"
   }
-  Earr id ix -> do {
+  Earr id ix_exp -> do {
+    ix <- evalExpressionArrayIdx ix_exp state;
     val <- lookArr state id ix;
     Ok (state, val)
   }
 
-evalConstraint2int :: Constraint -> Err Integer
-evalConstraint2int c = case c of
- Eint i -> Ok i
--- Ebool Constraint_True -> Bad "Can't turn bool to int"
--- Constraint_False -> Bad "Can't turn bool to int"
- Estring s -> Bad "can't turn string to int"
-
-convert_constraint_to_bool :: Constraint -> Err Bool
-convert_constraint_to_bool c = case c of
-      Ebool b -> return $ b == Constraint_True
-      Eint i -> return $ i /= 0
-      Estring _ -> Bad "cannot convert string to Boolean"
+convert_constraint_to_haskell_bool :: Constraint -> Err Bool
+convert_constraint_to_haskell_bool c = case c of
+  Ebool b -> return $ b == Constraint_True
+  Eint i -> return $ i /= 0
+  Estring _ -> Bad "cannot convert string to Boolean"

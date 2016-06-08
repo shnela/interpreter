@@ -1,11 +1,28 @@
 SOLUTION
   Integer fun(Integer a[])
   DO
-    a[2] = 2;
-    PRINT a[2];
+    a[0] = 42;
   RETURNED
 
-  Integer aint[10];
+  Integer silnia(Integer a[], Integer N)
+  DO
+    IF N == 0
+    THEN
+      a[0] = 1;
+    ELSE
+      silnia(a, N - 1);
+      a[N] = a[N - 1] * N;
+    FI
+  RETURNED
 
-  fun(aint);
+  Integer N = 4;
+  Integer aint[N];
+
+  silnia(aint, N - 1);
+
+  FOR i IN N
+  DO
+    PRINT i;
+    PRINT aint[i];
+  DONE
 CYA

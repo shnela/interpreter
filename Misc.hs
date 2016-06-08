@@ -12,11 +12,11 @@ data VarState = Vst[(Typ, Ident, Constraint)]
   deriving Show
 data RefState = Rst[(Typ, Ident, Ident)]
   deriving Show
-data ArrState = Ast[(Typ, Ident, [Constraint])]
+data ArrState = Ast[(Typ, Ident, [Constraint], Integer)]
   deriving Show
 data FunState = Fst[(Typ, Ident, [FArg], Blk, Integer)]
   deriving Show
-data BufState = Bst[Constraint]
+data BufState = Bst[String]
   deriving Show
 data RetValue = Return Constraint | NotRet
   deriving Show
@@ -84,20 +84,33 @@ getType con =
   Ebool _ -> Ok TBool
   Estring _ -> Ok TString
 
+updateV id con el@(t, i, c)
+  | i == id = (t, i, con)
+  | otherwise = el
+getVarType id oldt (t, i, _)
+  | i == id = t
+  | otherwise = oldt
+-- to invoke this functio you have to be sure that id is declared in this vst
+updateVarState id vst con =
+  let
+    dec_t = foldl (getVarType id) TInt vst
+    in do {
+      converted_con <- convert_to_proper_val con dec_t;
+      Ok $ map (updateV id converted_con) vst
+    }
+
 updateR :: State -> Ident -> Constraint -> Integer -> Integer -> Err State
 updateR BottomState id con top_flvl top_ilvl =
   case getType con of
   Ok t -> Bad $ "No such identifier: " ++ (show id) ++ " of type: " ++ (show t) ++ " to update."
   otherwise -> Bad "Unknown error during resolving variable type"
 updateR (St (Vst vst, Rst rst, Ast ast,Fst fst, Bst bst, stc, _, clvl, flvl, ilvl)) id con top_flvl top_ilvl =
-  let { updateV el@(t, i, c)
-        | i == id = (t, i, con)
-        | otherwise = el }
-    in
-    if ((clvl <= top_flvl || clvl > top_ilvl) && any (\(t, i, _) -> id == i && (getType con == Ok t)) vst)
-      then
-        Ok $ St(Vst (map updateV vst), Rst rst, Ast ast, Fst fst, Bst bst, stc,
+    if ((clvl <= top_flvl || clvl > top_ilvl) && any (\(t, i, _) -> id == i) vst)
+      then do {
+        updated_vst <- updateVarState id vst con;
+        Ok $ St((Vst updated_vst), Rst rst, Ast ast, Fst fst, Bst bst, stc,
           NotRet, clvl, flvl, ilvl)
+      }
       else do
         updated_state <- updateR stc id con top_flvl top_ilvl;
         Ok $ St(Vst vst, Rst rst, Ast ast, Fst fst, Bst bst, updated_state,
@@ -111,12 +124,14 @@ update state@(St (Vst vst, Rst rst, Ast ast, Fst fst, Bst bst, stc, _, clvl, t_f
 
 declare :: State -> Typ -> Ident -> Constraint -> Err State
 declare state@(St (Vst vst, Rst rst, Ast ast, Fst fst, Bst bst, stc, _, clvl, flvl, ilvl)) typ id con =
-  if (any (\(_, i, _) -> id == i) vst) || (any (\(_, i, _) -> id == i) ast)
+  if (any (\(_, i, _) -> id == i) vst) || (any (\(_, i, _, _) -> id == i) ast)
     then Bad "Identifier is declared in this scope"
-      else
+      else do {
+        converted_con <- convert_to_proper_val con typ;
         Ok (
-          St(Vst ((typ, id, con):vst), Rst rst, Ast ast, Fst fst, Bst bst, stc,
+          St(Vst ((typ, id, converted_con):vst), Rst rst, Ast ast, Fst fst, Bst bst, stc,
             NotRet, clvl, flvl, ilvl))
+        }
 
 -- declare for references
 refer :: State -> Typ -> Ident -> Typ -> Ident -> Err State
@@ -143,12 +158,28 @@ create_def_arr arr siz val =
   if siz == 0 then arr
     else create_def_arr (val:arr) (siz - 1) val
 
+-- helper function
+findArrId id found (t, i, c, s)
+  | i == id = (t, i, c, s)
+  | otherwise = found
+
+
+-- helper check size of array and idx
+checkIdxOutOfBound id ix (Ast ast) =
+  let arr_size = ((\(_, _, _, s) -> s)(foldl (findArrId id) (head ast) ast))
+    in if ix >= arr_size
+      then Bad $ "Array of size " ++ (show arr_size) ++ " cannot return idx: " ++ (show ix)
+      else Ok arr_size
 
 lookArrR :: State -> Ident -> Integer -> Integer -> Integer -> Err Constraint
 lookArrR BottomState id ix _ _ = Bad $ "no such array: " ++ (show id) ++ " " ++ (show ix)
 lookArrR (St (_, _, Ast ast, _, _, stc, _, clvl, _, _)) id ix top_flvl top_ilvl =
-    if (clvl <= top_flvl || clvl > top_ilvl) && (any (\(_, i, _) -> id == i) ast)
-      then Ok ((\(_, _, c) -> c !! (fromIntegral ix))(foldl (findVarId id) (head ast) ast))
+    if (clvl <= top_flvl || clvl > top_ilvl) && (any (\(_, i, _, _) -> id == i) ast)
+      then do
+        arr_size <- checkIdxOutOfBound id ix (Ast ast);
+        if ix >= arr_size then Bad $ "Array of size " ++ (show arr_size) ++ " cannot return idx: " ++ (show ix)
+          else
+            Ok ((\(_, _, c, _) -> c !! (fromIntegral ix))(foldl (findArrId id) (head ast) ast))
       else lookArrR stc id ix top_flvl top_ilvl
 
 lookArr :: State -> Ident -> Integer -> Err Constraint
@@ -161,20 +192,38 @@ updateIx [] arr ix con count = reverse arr
 updateIx (h:t) arr ix con count =
   if ix == count then updateIx t (con:arr) ix con (count + 1)
     else updateIx t (h:arr) ix con (count + 1)
+
+updateA id ix con el@(t, i, c, s)
+  | i == id = (t, i, updateIx c [] ix con 0, s)
+  | otherwise = el
+getArrType id oldt (t, i, _, _)
+  | i == id = t
+  | otherwise = oldt
+-- to invoke this functio you have to be sure that id is declared in this vst
+updateArrState id ix vst con =
+  let
+    dec_t = foldl (getArrType id) TInt vst
+    in do {
+      converted_con <- convert_to_proper_val con dec_t;
+      Ok $ map (updateA id ix converted_con) vst
+    }
+
 updateArrR :: State -> Ident -> Integer -> Constraint -> Integer -> Integer -> Err State
 updateArrR BottomState id ix con top_flvl top_ilvl =
   case getType con of
   Ok t -> Bad $ "No such identifier: " ++ (show id) ++ " of type: " ++ (show t) ++ " to update."
   otherwise -> Bad "Unknown error during resolving variable type"
 updateArrR (St (Vst vst, Rst rst, Ast ast,Fst fst, Bst bst, stc, _, clvl, flvl, ilvl)) id ix con top_flvl top_ilvl =
-  let { updateA el@(t, i, c)
-        | i == id = (t, i, updateIx c [] ix con 0)
+  let { updateA el@(t, i, c, s)
+        | i == id = (t, i, updateIx c [] ix con 0, s)
         | otherwise = el }
     in
-    if ((clvl <= top_flvl || clvl > top_ilvl) && any (\(t, i, _) -> id == i && (getType con == Ok t)) ast)
-      then
-        Ok $ St(Vst vst, Rst rst, Ast (map updateA ast), Fst fst, Bst bst, stc,
+    if ((clvl <= top_flvl || clvl > top_ilvl) && any (\(t, i, _, _) -> id == i) ast)
+      then do {
+        updated_ast <- updateArrState id ix ast con;
+        Ok $ St(Vst vst, Rst rst, Ast updated_ast, Fst fst, Bst bst, stc,
           NotRet, clvl, flvl, ilvl)
+      }
       else do
         updated_state <- updateArrR stc id ix con top_flvl top_ilvl;
         Ok $ St(Vst vst, Rst rst, Ast ast, Fst fst, Bst bst, updated_state,
@@ -190,12 +239,13 @@ declareA :: State -> Typ -> Ident -> Integer -> Constraint -> Err State
 declareA state@(St (Vst vst, Rst rst, Ast ast, Fst fst, Bst bst, st, _, clvl, flvl, ilvl)) typ id siz val = do
   let def_arr = create_def_arr [] siz val
     in
-      if (any (\(_, i, _) -> id == i) vst) || (any (\(_, i, _) -> id == i) ast)
+      if (any (\(_, i, _) -> id == i) vst) || (any (\(_, i, _, _) -> id == i) ast)
         then Bad "Such id is already defined in this scope"
         else Ok (
-          St(Vst vst, Rst rst, Ast ((typ, id, def_arr):ast), Fst fst, Bst bst, st,
+          St(Vst vst, Rst rst, Ast ((typ, id, def_arr, siz):ast), Fst fst, Bst bst, st,
             NotRet, clvl, flvl, ilvl))
 declareA BottomState _ _ _ _ = Bad "declareF programming error"
+
 
 -- helper function
 findFunId id found (t, i, a, c, dlvl)
@@ -228,7 +278,7 @@ unwind_state state@(St (_, _, _, _, _, deep_s, retVal, _, _, _)) =
     BottomState -> state
     otherwise -> setRetValue deep_s retVal
 
-toBuffer :: State -> Constraint -> Err State
+toBuffer :: State -> String -> Err State
 toBuffer state@(St (Vst vst, Rst rst, Ast ast, Fst fst, Bst bst, BottomState, _, clvl, flvl, ilvl)) mesg =
     Ok (
       St( Vst vst, Rst rst, Ast ast, Fst fst, Bst (mesg:bst),
@@ -254,3 +304,31 @@ defaultValue t = case t of
   TInt -> Eint 0
   TBool -> Ebool Constraint_False
   TString -> Estring ""
+
+
+-- default conversions
+convert_constraint_to_int :: Constraint -> Err Constraint
+convert_constraint_to_int c = case c of
+ Eint i -> Ok $ Eint i
+ Ebool Constraint_True -> Ok $ Eint 1
+ Ebool Constraint_False -> Ok $ Eint 0
+ Estring s -> Bad "can't turn string to int"
+
+convert_constraint_to_bool :: Constraint -> Err Constraint
+convert_constraint_to_bool c = case c of
+  Ebool b -> Ok $ Ebool b
+  Eint i -> if i == 0 then Ok $ Ebool Constraint_False else Ok $ Ebool Constraint_True
+  Estring _ -> Bad "cannot convert string to Boolean"
+
+convert_constraint_to_string :: Constraint -> Err Constraint
+convert_constraint_to_string str = case str of
+  Ebool b -> Bad "cannot convert bool to string"
+  Eint i -> Bad "cannot convert int to string"
+  Estring str -> Ok $ Estring str
+
+convert_to_proper_val :: Constraint -> Typ -> Err Constraint
+convert_to_proper_val con typ =
+  case typ of
+    TInt -> convert_constraint_to_int con
+    TBool -> convert_constraint_to_bool con
+    TString -> convert_constraint_to_string con

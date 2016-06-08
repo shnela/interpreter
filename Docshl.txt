@@ -39,7 +39,7 @@ The reserved words used in shl are the following:
 
 The symbols used in shl are the following:
   | ; | = | [ | ]
-  | ( | ) | [] | ,
+  | , | ( | ) | []
   | == | != | < | >
   | <= | >= | + | -
   | * | / | ++ | --
@@ -62,14 +62,20 @@ All other symbols are terminals.
   |  |  **|**  | ``RETURN`` //Exp// ``;`` 
   |  |  **|**  | ``PRINT`` //Exp// ``;`` 
   |  |  **|**  | //Exp// ``;`` 
-  |  |  **|**  | //Ident// ``=`` //Exp// ``;`` 
-  |  |  **|**  | //Ident// ``[`` //Integer// ``]`` ``=`` //Exp// ``;`` 
+  |  |  **|**  | //[AssM]// ``=`` //[Exp]// ``;`` 
   | //[Stm]// | -> | **eps**
   |  |  **|**  | //Stm// //[Stm]// 
+  | //AssM// | -> | //Ident// 
+  |  |  **|**  | //Ident// ``[`` //Exp// ``]`` 
+  | //AssE// | -> | //Exp// 
+  | //[AssM]// | -> | //AssM// 
+  |  |  **|**  | //AssM// ``,`` //[AssM]// 
+  | //[Exp]// | -> | //Exp// 
+  |  |  **|**  | //Exp// ``,`` //[Exp]// 
   | //Dec// | -> | //Typ// //Ident// ``;`` 
   |  |  **|**  | //Typ// //Ident// ``=`` //Exp// ``;`` 
   |  |  **|**  | //Typ// //Ident// ``(`` //[FArg]// ``)`` ``DO`` //Blk// ``RETURNED`` 
-  |  |  **|**  | //Typ// //Ident// ``[`` //Integer// ``]`` ``;`` 
+  |  |  **|**  | //Typ// //Ident// ``[`` //Exp// ``]`` ``;`` 
   | //FArg// | -> | //Typ// //Ident// 
   |  |  **|**  | //Typ// //Ident// ``=`` //Exp// 
   |  |  **|**  | //Typ// //Ident// ``(`` //[FArg]// ``)`` 
@@ -103,7 +109,7 @@ All other symbols are terminals.
   |  |  **|**  | //Ident// 
   |  |  **|**  | //Constraint// 
   |  |  **|**  | ``LAMBDA`` //[FArg]// ``:`` //Exp// 
-  |  |  **|**  | //Ident// ``[`` //Integer// ``]`` 
+  |  |  **|**  | //Ident// ``[`` //Exp// ``]`` 
   |  |  **|**  | //Exp6// 
   | //Exp1// | -> | //Exp2// 
   | //Exp6// | -> | ``(`` //Exp// ``)`` 
