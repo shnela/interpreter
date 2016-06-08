@@ -17,7 +17,7 @@ import Misc
 
 runFile :: FilePath -> IO ()
 runFile f = putStrLn f >> readFile f >>= \s -> show_info s >> debug s >> run s
--- runFile f = putStrLn f >> readFile f >>= \s -> show_info s >> run s
+-- runFile f = putStrLn f >> readFile f >>= \s -> run s
 
 main :: IO ()
 main = do args <- getArgs
@@ -28,11 +28,11 @@ main = do args <- getArgs
 
 run :: String -> IO ()
 run s = let ts = myLexer s in case pProg ts of
-           Bad msg   -> do putStrLn msg;
+           Bad msg -> do putStrLn msg;
            Ok p   -> do
                       case (interpret p) of
                         Ok (St (_, _, _, _, Bst bst, _, _, _, _, _)) -> putStrLn $ show $ reverse bst
-                        Bad c -> putStrLn c
+                        Bad c -> return()
                       return ();
 
 

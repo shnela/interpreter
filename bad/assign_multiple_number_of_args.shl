@@ -2,8 +2,5 @@ SOLUTION
     Integer a;
     Integer b;
 
-    a = 42;
     b = 1, 2;
-    a, b = 1;
-    a, b = 1, 2;
 CYA
